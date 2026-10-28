@@ -17,7 +17,7 @@ const MAX_INTENTOS = 5;
 const MENSAJE_ENVIADO = 'Te enviamos un correo con un código de 6 dígitos. Revisa también la carpeta de spam.';
 
 // POST /api/auth/solicitar — pide código + enlace mágico (login o registro).
-router.post('/solicitar', limitarPorIp('auth-solicitar', 10, 15 * 60), async (req, res, next) => {
+router.post('/solicitar', limitarPorIp('auth-solicitar', 40, 15 * 60), async (req, res, next) => {
   try {
     const email = v.email(req.body.email);
     const modo = v.opcion(req.body.modo, ['login', 'registro'], 'modo');
@@ -88,7 +88,7 @@ async function completarAcceso(token, res) {
 }
 
 // POST /api/auth/verificar — { email, codigo }
-router.post('/verificar', limitarPorIp('auth-verificar', 20, 15 * 60), async (req, res, next) => {
+router.post('/verificar', limitarPorIp('auth-verificar', 80, 15 * 60), async (req, res, next) => {
   try {
     const email = v.email(req.body.email);
     const codigo = String(req.body.codigo || '').replace(/\D/g, '');
@@ -111,7 +111,7 @@ router.post('/verificar', limitarPorIp('auth-verificar', 20, 15 * 60), async (re
 
 // POST /api/auth/enlace — { t }. El enlace del correo abre la app y ella llama aquí
 // (así los antivirus de correo que "visitan" enlaces no consumen el acceso).
-router.post('/enlace', limitarPorIp('auth-enlace', 20, 15 * 60), async (req, res, next) => {
+router.post('/enlace', limitarPorIp('auth-enlace', 80, 15 * 60), async (req, res, next) => {
   try {
     const t = String(req.body.t || '');
     const token = t && (await prisma.loginToken.findUnique({ where: { linkHash: hmac(t, 'enlace') } }));

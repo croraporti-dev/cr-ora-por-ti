@@ -268,7 +268,7 @@ y aplícala con `npm run db:deploy`.
 
 ## Seguridad
 
-- Límite de intentos guardado en Postgres (en Vercel, la memoria no se comparte entre instancias): 10 solicitudes de código por IP cada 15 min, 4 por correo y 5 intentos por código.
+- Límite de intentos guardado en Postgres (en Vercel, la memoria no se comparte entre instancias). Por correo: 4 solicitudes de código cada 15 min y 5 intentos por código. Por red (IP), con margen para que 50 personas usen el mismo Wi-Fi de la iglesia: 40 solicitudes de código cada 15 min, 100 perfiles de joven y 400 evaluaciones por hora.
 - Solo se guardan hashes de los códigos y enlaces.
 - Las peticiones que modifican datos requieren el header `X-CR-App: 1` (protección CSRF) además de la cookie SameSite=Lax.
 - Los logs nunca incluyen el cuerpo de las peticiones.

@@ -7,7 +7,7 @@ const { limitarPorIp } = require('../middleware/rateLimit');
 
 const router = express.Router();
 
-router.post('/', limitarPorIp('animo', 30, 60 * 60), async (req, res, next) => {
+router.post('/', limitarPorIp('animo', 300, 60 * 60), async (req, res, next) => {
   try {
     const payload = verificarEnlace(req.body.t, 'animo');
     if (!payload?.e) return res.status(400).json({ error: 'Este enlace venció. Puedes responder desde la app.' });

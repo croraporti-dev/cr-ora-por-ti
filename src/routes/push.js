@@ -57,7 +57,7 @@ router.get('/estado', requiereDueno, async (req, res, next) => {
 });
 
 // POST /api/push/suscribir — { subscription, anterior? }
-router.post('/suscribir', limitarPorIp('push-suscribir', 30, 60 * 60), requiereDueno, async (req, res, next) => {
+router.post('/suscribir', limitarPorIp('push-suscribir', 300, 60 * 60), requiereDueno, async (req, res, next) => {
   try {
     const sub = leerSuscripcion(req.body.subscription);
     if (!sub) return res.status(400).json({ error: 'La suscripción no es válida.' });
@@ -90,7 +90,7 @@ router.post('/desuscribir', requiereDueno, async (req, res, next) => {
 });
 
 // POST /api/push/prueba — envía una notificación de prueba a los dispositivos de esta persona
-router.post('/prueba', limitarPorIp('push-prueba', 10, 60 * 60), requiereDueno, async (req, res, next) => {
+router.post('/prueba', limitarPorIp('push-prueba', 60, 60 * 60), requiereDueno, async (req, res, next) => {
   try {
     const user = dueno(req);
     if (!push.disponible()) return res.status(503).json({ error: 'El servidor aún no tiene configuradas las claves de avisos (VAPID).' });

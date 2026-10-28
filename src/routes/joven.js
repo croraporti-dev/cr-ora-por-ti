@@ -31,7 +31,7 @@ router.get('/', async (req, res, next) => {
 });
 
 // POST /api/joven/perfil — { nombre, apellido, telefono, aceptaAviso, esMenor, apoderado }
-router.post('/perfil', limitarPorIp('joven-perfil', 8, 60 * 60), async (req, res, next) => {
+router.post('/perfil', limitarPorIp('joven-perfil', 100, 60 * 60), async (req, res, next) => {
   try {
     const nombre = v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 });
     const apellido = v.texto(req.body.apellido, { nombre: 'tu apellido', min: 2, max: 40 });
@@ -71,7 +71,7 @@ router.post('/olvidar', async (req, res, next) => {
   }
 });
 
-const limiteEscritura = limitarPorIp('joven-evaluaciones', 30, 60 * 60);
+const limiteEscritura = limitarPorIp('joven-evaluaciones', 400, 60 * 60);
 
 router.post('/evaluaciones', limiteEscritura, requiereJoven, async (req, res, next) => {
   try {

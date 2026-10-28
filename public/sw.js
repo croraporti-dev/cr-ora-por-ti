@@ -1,5 +1,5 @@
 // Service worker de CR ora por ti: recibe los avisos push y deja la app abriendo sin conexión.
-const VERSION = 'cr-ora-v1';
+const VERSION = 'cr-ora-v2';
 const ARCHIVOS = [
   '/',
   '/index.html',
@@ -18,6 +18,7 @@ const ARCHIVOS = [
   '/js/vistas/avisos.js',
   '/js/vistas/lider.js',
   '/icons/icon-192.png',
+  '/icons/logo-azul.svg',
   '/icons/badge-96.png'
 ];
 

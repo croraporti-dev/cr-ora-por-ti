@@ -1,34 +1,29 @@
-// Genera los íconos de la PWA desde un SVG (corazón con una cruz, colores de CR Digital).
-// Uso: npm run iconos   (solo hace falta si cambias el diseño; los PNG quedan en el repositorio)
+// Genera los íconos de la PWA con el logo «Union» de CR (public/icons/union.svg, el mismo de CR Digital).
+// Uso: npm run iconos   (solo hace falta si cambia el logo; los PNG quedan en el repositorio)
 const fs = require('fs');
 const path = require('path');
 const sharp = require('sharp');
 
 const AZUL = '#2563eb';
-const CALIDO = '#f59e0b';
+const CREMA = '#E5E2DD'; // color original del logo
 const destino = path.join(__dirname, '..', 'public', 'icons');
 
-const CORAZON = 'M50 88 C20 66 6 50 6 32 C6 18 17 8 30 8 C39 8 46 13 50 20 C54 13 61 8 70 8 C83 8 94 18 94 32 C94 50 80 66 50 88 Z';
-const CRUZ = `<rect x="46.5" y="27" width="7" height="40" rx="2"/><rect x="36" y="37" width="28" height="7" rx="2"/>`;
+// Trazado del logo Union (viewBox 0 0 61 38).
+const original = fs.readFileSync(path.join(destino, 'union.svg'), 'utf8');
+const TRAZO = original.match(/<path d="([^"]+)"/)[1];
+const ANCHO = 61;
+const ALTO = 38;
 
-// escala = tamaño del corazón respecto del ícono (el maskable necesita más margen: zona segura del 80 %).
-function svg({ escala, fondo = true, redondeado = true }) {
-  const t = 100 * escala;
-  const o = (100 - t) / 2;
+// ancho = ancho del logo respecto del ícono (el maskable necesita más margen: zona segura del 80 %).
+function svg({ ancho, fondo = AZUL, color = CREMA, redondeado = true }) {
+  const escala = (100 * ancho) / ANCHO;
+  const x = (100 - ANCHO * escala) / 2;
+  const y = (100 - ALTO * escala) / 2;
   return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  ${fondo ? `<rect width="100" height="100" ${redondeado ? 'rx="22"' : ''} fill="${AZUL}"/>` : ''}
-  <g transform="translate(${o} ${o + 2}) scale(${escala})">
-    <path d="${CORAZON}" fill="#ffffff"/>
-    <g fill="${CALIDO}">${CRUZ}</g>
-  </g>
+  ${fondo ? `<rect width="100" height="100" ${redondeado ? 'rx="22"' : ''} fill="${fondo}"/>` : ''}
+  <path transform="translate(${x} ${y}) scale(${escala})" d="${TRAZO}" fill="${color}"/>
 </svg>`;
 }
-
-// Insignia de la barra de estado de Android: silueta blanca sobre transparente.
-const insignia = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
-  <defs><mask id="m"><rect width="100" height="100" fill="#fff"/><g fill="#000">${CRUZ}</g></mask></defs>
-  <path d="${CORAZON}" fill="#ffffff" mask="url(#m)"/>
-</svg>`;
 
 async function png(contenido, nombre, tamano) {
   await sharp(Buffer.from(contenido)).resize(tamano, tamano).png().toFile(path.join(destino, nombre));
@@ -36,13 +31,15 @@ async function png(contenido, nombre, tamano) {
 }
 
 (async () => {
-  fs.mkdirSync(destino, { recursive: true });
-  const normal = svg({ escala: 0.72 });
+  const normal = svg({ ancho: 0.62 });
+  // Para el encabezado de la app (fondo blanco): el logo en azul, sin recuadro.
+  fs.writeFileSync(path.join(destino, 'logo-azul.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${ANCHO} ${ALTO}"><path d="${TRAZO}" fill="${AZUL}"/></svg>\n`);
   fs.writeFileSync(path.join(destino, 'icon.svg'), normal);
   await png(normal, 'icon-192.png', 192);
   await png(normal, 'icon-512.png', 512);
-  await png(svg({ escala: 0.56, redondeado: false }), 'maskable-512.png', 512);
+  await png(svg({ ancho: 0.5, redondeado: false }), 'maskable-512.png', 512);
   // iOS redondea solo las esquinas: fondo completo.
-  await png(svg({ escala: 0.68, redondeado: false }), 'apple-touch-icon.png', 180);
-  await png(insignia, 'badge-96.png', 96);
+  await png(svg({ ancho: 0.58, redondeado: false }), 'apple-touch-icon.png', 180);
+  // Insignia de la barra de estado de Android: silueta blanca sobre transparente.
+  await png(svg({ ancho: 0.8, fondo: null, color: '#ffffff' }), 'badge-96.png', 96);
 })();

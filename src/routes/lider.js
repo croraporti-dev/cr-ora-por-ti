@@ -4,6 +4,7 @@ const prisma = require('../db');
 const { requiereRol } = require('../middleware/auth');
 const invitacion = require('../services/invitacion');
 const { avisarAprobacion } = require('../services/solicitudes');
+const { crearEnlaceAcceso } = require('../services/claves');
 const { nombreVisible } = require('../services/evaluaciones');
 const { ahoraLocal } = require('../services/tiempo');
 const v = require('../validar');
@@ -78,19 +79,32 @@ router.get('/miembros', async (req, res, next) => {
     const miembros = await prisma.user.findMany({
       orderBy: [{ rol: 'asc' }, { nombre: 'asc' }],
       select: {
-        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, createdAt: true, aprobadoAt: true,
+        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, createdAt: true, aprobadoAt: true, passwordHash: true,
         _count: { select: { evaluaciones: true, pushSubs: { where: { activa: true } } } }
       }
     });
     res.json({
       yo: req.user.id,
-      miembros: miembros.map(({ _count, aprobadoAt, ...m }) => ({
+      miembros: miembros.map(({ _count, aprobadoAt, passwordHash, ...m }) => ({
         ...m,
         pendiente: !aprobadoAt,
+        // Solo se informa si tiene contraseña; el hash nunca sale del servidor.
+        tieneClave: !!passwordHash,
         evaluaciones: _count.evaluaciones,
         avisosActivos: _count.pushSubs > 0
       }))
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/lider/miembros/:id/acceso — enlace de un solo uso (24 h) para que cree o cambie su contraseña
+router.post('/miembros/:id/acceso', async (req, res, next) => {
+  try {
+    const persona = await prisma.user.findFirst({ where: { id: req.params.id, rol: { in: ['ORANTE', 'LIDER'] } } });
+    if (!persona) return res.status(404).json({ error: 'No encontramos a esa persona.' });
+    res.json({ enlace: await crearEnlaceAcceso(persona.id, 24), nombre: persona.nombre });
   } catch (err) {
     next(err);
   }

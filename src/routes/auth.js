@@ -1,124 +1,90 @@
+// Acceso de orantes y líderes: correo + contraseña. Los jóvenes no inician sesión.
 const express = require('express');
 const prisma = require('../db');
-const config = require('../config');
 const v = require('../validar');
-const { hmac, igualesSeguro, codigoSeisDigitos, tokenAleatorio } = require('../services/tokens');
+const claves = require('../services/claves');
 const { consumir, limitarPorIp } = require('../middleware/rateLimit');
 const { ponerCookieSesion, borrarCookieSesion } = require('../middleware/auth');
-const { enviarCorreo } = require('../services/mailer');
-const { correoAcceso } = require('../services/plantillas');
 const { esCodigoValido } = require('../services/invitacion');
 const { crearUsuario, usuarioPublico } = require('../services/usuarios');
 const { avisarNuevaSolicitud } = require('../services/solicitudes');
 
 const router = express.Router();
 
-const MINUTOS_VIGENCIA = 15;
-const MAX_INTENTOS = 5;
-const MENSAJE_ENVIADO = 'Te enviamos un correo con un código de 6 dígitos. Revisa también la carpeta de spam.';
+const ERROR_CREDENCIALES = 'Correo o contraseña incorrectos. Si la olvidaste, pide a quien administra el grupo que te envíe un enlace para crear una nueva.';
+const ERROR_ENLACE = 'Este enlace ya se usó o venció. Pide uno nuevo a quien administra el grupo.';
 
-// POST /api/auth/solicitar — pide código + enlace mágico (login o registro).
-router.post('/solicitar', limitarPorIp('auth-solicitar', 40, 15 * 60), async (req, res, next) => {
+// POST /api/auth/registro — { invitacion, nombre, email, password, aceptaAviso }
+// Se suma por el enlace de invitación y queda pendiente hasta que alguien con rol líder lo apruebe.
+router.post('/registro', limitarPorIp('auth-registro', 40, 15 * 60), async (req, res, next) => {
   try {
+    if (!(await esCodigoValido(req.body.invitacion))) {
+      return res.status(400).json({ error: 'Este enlace de invitación ya no es válido. Pide uno nuevo a quien te invitó a orar.' });
+    }
+    if (req.body.aceptaAviso !== true) throw new v.ErrorValidacion('Para sumarte necesitas aceptar el aviso de privacidad.');
+    const nombre = v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 });
     const email = v.email(req.body.email);
-    const modo = v.opcion(req.body.modo, ['login', 'registro'], 'modo');
+    const clave = claves.validarClave(req.body.password);
 
-    if (!(await consumir(`auth-solicitar:email:${email}`, 4, 15 * 60))) {
-      return res.status(429).json({ error: 'Ya pedimos varios códigos para este correo. Espera unos minutos.' });
+    if (await prisma.user.findUnique({ where: { email } })) {
+      return res.status(400).json({ error: 'Ese correo ya está registrado. Entra con tu contraseña.' });
     }
-
-    const existente = await prisma.user.findUnique({ where: { email } });
-    let registro = null;
-
-    if (modo === 'registro' && !existente) {
-      if (!(await esCodigoValido(req.body.invitacion))) {
-        return res.status(400).json({ error: 'Este enlace de invitación ya no es válido. Pide uno nuevo a quien te invitó a orar.' });
-      }
-      if (req.body.aceptaAviso !== true) {
-        return res.status(400).json({ error: 'Para registrarte necesitas aceptar el aviso de privacidad.' });
-      }
-      registro = {
-        nombre: v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 }),
-        // Con correo solo se registran orantes; los jóvenes usan el formulario sin sesión.
-        rol: 'ORANTE',
-        // Queda pendiente hasta que alguien con rol líder lo apruebe.
-        aprobado: false
-      };
-    }
-
-    // En login con un correo desconocido respondemos lo mismo, para no revelar quién está registrado.
-    if (!existente && !registro) return res.json({ ok: true, mensaje: MENSAJE_ENVIADO });
-
-    const codigo = codigoSeisDigitos();
-    const enlaceToken = tokenAleatorio();
-    await prisma.$transaction([
-      prisma.loginToken.deleteMany({ where: { email, usedAt: null } }),
-      prisma.loginToken.create({
-        data: {
-          email,
-          codeHash: hmac(codigo, 'codigo'),
-          linkHash: hmac(enlaceToken, 'enlace'),
-          expiresAt: new Date(Date.now() + MINUTOS_VIGENCIA * 60 * 1000),
-          registro
-        }
-      })
-    ]);
-
-    const enlace = `${config.appUrl}/#/entrar?t=${encodeURIComponent(enlaceToken)}`;
-    await enviarCorreo({ to: email, ...correoAcceso({ codigo, enlace }) });
-    res.json({ ok: true, mensaje: MENSAJE_ENVIADO });
+    const user = await crearUsuario({ email, nombre, rol: 'ORANTE', aprobado: false, passwordHash: await claves.cifrar(clave) });
+    avisarNuevaSolicitud(user).catch((err) => console.error('[solicitud]', err.message));
+    ponerCookieSesion(res, user);
+    res.status(201).json({ ok: true, user: usuarioPublico(user) });
   } catch (err) {
     next(err);
   }
 });
 
-async function completarAcceso(token, res) {
-  // Marca el token como usado solo si nadie lo usó antes (evita doble uso simultáneo).
-  const marcado = await prisma.loginToken.updateMany({ where: { id: token.id, usedAt: null }, data: { usedAt: new Date() } });
-  if (!marcado.count) return res.status(400).json({ error: 'Este acceso ya se usó. Pide uno nuevo.' });
-
-  let user = await prisma.user.findUnique({ where: { email: token.email } });
-  if (!user && token.registro) {
-    user = await crearUsuario({ email: token.email, ...token.registro });
-    if (!user.aprobadoAt) avisarNuevaSolicitud(user).catch((err) => console.error('[solicitud]', err.message));
-  }
-  if (!user) return res.status(400).json({ error: 'No encontramos tu cuenta. Para sumarte necesitas el enlace de invitación.' });
-  ponerCookieSesion(res, user);
-  res.json({ ok: true, user: usuarioPublico(user) });
-}
-
-// POST /api/auth/verificar — { email, codigo }
-router.post('/verificar', limitarPorIp('auth-verificar', 80, 15 * 60), async (req, res, next) => {
+// POST /api/auth/entrar — { email, password }
+router.post('/entrar', limitarPorIp('auth-entrar', 60, 15 * 60), async (req, res, next) => {
   try {
     const email = v.email(req.body.email);
-    const codigo = String(req.body.codigo || '').replace(/\D/g, '');
-    const token = await prisma.loginToken.findFirst({
-      where: { email, usedAt: null, expiresAt: { gt: new Date() } },
-      orderBy: { createdAt: 'desc' }
+    // Frena a quien pruebe muchas contraseñas para un mismo correo.
+    if (!(await consumir(`auth-entrar:email:${email}`, 8, 15 * 60))) {
+      return res.status(429).json({ error: 'Demasiados intentos para este correo. Espera unos minutos.' });
+    }
+    const user = await prisma.user.findUnique({ where: { email } });
+    const ok = user?.passwordHash
+      ? await claves.verificar(req.body.password, user.passwordHash)
+      : await claves.verificarSinCuenta(req.body.password);
+    if (!ok) return res.status(400).json({ error: ERROR_CREDENCIALES });
+    ponerCookieSesion(res, user);
+    res.json({ ok: true, user: usuarioPublico(user) });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// GET /api/auth/clave?t=... — ¿el enlace para crear contraseña sigue vigente? (no lo consume)
+router.get('/clave', limitarPorIp('auth-clave', 60, 15 * 60), async (req, res, next) => {
+  try {
+    const enlace = await claves.buscarEnlace(req.query.t);
+    if (!enlace) return res.status(400).json({ error: ERROR_ENLACE });
+    res.json({ ok: true, nombre: enlace.user.nombre, email: enlace.user.email });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/auth/clave — { t, password }: crea o cambia la contraseña con el enlace de un solo uso.
+router.post('/clave', limitarPorIp('auth-clave', 60, 15 * 60), async (req, res, next) => {
+  try {
+    const clave = claves.validarClave(req.body.password);
+    const enlace = await claves.buscarEnlace(req.body.t);
+    if (!enlace) return res.status(400).json({ error: ERROR_ENLACE });
+    // Marca el enlace como usado solo si nadie lo usó antes.
+    const marcado = await prisma.enlaceAcceso.updateMany({ where: { id: enlace.id, usedAt: null }, data: { usedAt: new Date() } });
+    if (!marcado.count) return res.status(400).json({ error: ERROR_ENLACE });
+    // Nueva contraseña: se cierran las sesiones abiertas en otros dispositivos.
+    const user = await prisma.user.update({
+      where: { id: enlace.userId },
+      data: { passwordHash: await claves.cifrar(clave), sessionVersion: { increment: 1 } }
     });
-    if (!token || token.intentos >= MAX_INTENTOS) {
-      return res.status(400).json({ error: 'El código venció o ya se usó. Pide uno nuevo.' });
-    }
-    if (codigo.length !== 6 || !igualesSeguro(hmac(codigo, 'codigo'), token.codeHash)) {
-      await prisma.loginToken.update({ where: { id: token.id }, data: { intentos: { increment: 1 } } });
-      return res.status(400).json({ error: 'El código no coincide. Revísalo e inténtalo otra vez.' });
-    }
-    await completarAcceso(token, res);
-  } catch (err) {
-    next(err);
-  }
-});
-
-// POST /api/auth/enlace — { t }. El enlace del correo abre la app y ella llama aquí
-// (así los antivirus de correo que "visitan" enlaces no consumen el acceso).
-router.post('/enlace', limitarPorIp('auth-enlace', 80, 15 * 60), async (req, res, next) => {
-  try {
-    const t = String(req.body.t || '');
-    const token = t && (await prisma.loginToken.findUnique({ where: { linkHash: hmac(t, 'enlace') } }));
-    if (!token || token.usedAt || token.expiresAt < new Date()) {
-      return res.status(400).json({ error: 'Este enlace venció o ya se usó. Pide uno nuevo.' });
-    }
-    await completarAcceso(token, res);
+    ponerCookieSesion(res, user);
+    res.json({ ok: true, user: usuarioPublico(user) });
   } catch (err) {
     next(err);
   }

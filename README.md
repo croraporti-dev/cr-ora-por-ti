@@ -16,7 +16,7 @@ npm install
 cp .env.example .env        # en local basta con DATABASE_URL, DIRECT_URL y MAIL_PROVIDER=consola
 npm run db:local            # Postgres embebido en localhost:54329 (déjalo corriendo en otra terminal)
 npx prisma migrate dev      # crea las tablas
-npm run crear-lider -- tu@correo.cl "Tu Nombre"   # crea una cuenta con rol líder y muestra el enlace de invitación
+npm run crear-lider -- tu@correo.cl "Tu Nombre"   # crea una cuenta con rol líder: muestra el enlace para crear su contraseña y el de invitación
 npm run dev                 # http://localhost:3000
 ```
 
@@ -28,7 +28,7 @@ DIRECT_URL="postgresql://postgres:local@localhost:54329/cr_ora"
 MAIL_PROVIDER="consola"
 ```
 
-Con `MAIL_PROVIDER=consola`, los correos (incluido el código de 6 dígitos) se muestran en la terminal del servidor.
+Con `MAIL_PROVIDER=consola`, los correos (avisos de respaldo, solicitudes, resumen) se muestran en la terminal del servidor y se guardan en `correos-locales.txt`.
 
 ### Prueba local completa (antes de desplegar)
 
@@ -37,11 +37,11 @@ Usa tres terminales:
 | Terminal | Comando | Para qué |
 |---|---|---|
 | 1 | `npm run db:local` | Base de datos local |
-| 2 | `npm run dev` | La app en http://localhost:3000; aquí aparecen los correos y los códigos |
+| 2 | `npm run dev` | La app en http://localhost:3000; aquí aparecen los correos |
 | 3 | `npm run cron:local` | Envía los avisos pendientes cada minuto (simula GitHub Actions) |
 
 Recorrido sugerido, en **Chrome** de tu computador:
-1. **Líder:** `npm run crear-lider -- tu@correo.cl "Tu Nombre"`. Entra en http://localhost:3000 → «Entrar para orar», con el código de 6 dígitos que aparece en la terminal 2.
+1. **Líder:** `npm run crear-lider -- tu@correo.cl "Tu Nombre"`. Abre el enlace que muestra, crea tu contraseña y entrarás directo.
 2. **Avisos:** en Ajustes toca «Activar avisos en este dispositivo», acepta el permiso y toca «Enviar notificación de prueba». La notificación debe llegar aunque minimices Chrome.
 3. **Joven:** abre una ventana de incógnito (así tiene otra sesión), toca «Anotar mi prueba», completa tus datos y anota una evaluación para hoy, unos 50 minutos más tarde.
 4. En el siguiente minuto, la terminal 3 muestra `push enviados: 1` y te llega «Ora por …». Al tocarla se abre esa tarjeta en la agenda.
@@ -76,18 +76,22 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 - El celular solo lo ven quienes tienen rol líder. Los orantes ven "Camila P.".
 - "¿Cómo te fue?" se responde en la app con tres botones cuando el joven vuelve a abrirla.
 
-**Orantes (`ORANTE`) y líder (`LIDER`): con correo, sin contraseña.**
-- Cada correo trae un **código de 6 dígitos** y un **enlace mágico** (vencen en 15 min y sirven una sola vez).
-- En **iPhone con la app instalada** hay que escribir el código dentro de la app: el enlace del correo se abre en Safari, que guarda su sesión aparte.
+**Orantes (`ORANTE`) y líder (`LIDER`): correo + contraseña.**
+- Entran con su correo y una contraseña de al menos 8 caracteres, guardada cifrada con scrypt (nadie puede verla).
+- Sesión de **1 año** por dispositivo en una cookie httpOnly: casi nunca hay que volver a escribirla.
+- **Olvidé mi contraseña:** quien tiene rol líder toca «Enviar acceso» junto a la persona en «Grupo» y le manda por WhatsApp un enlace de un solo uso (24 h) para crear una nueva. Al cambiarla se cierran sus sesiones en otros dispositivos. También se puede cambiar desde Ajustes.
+- El correo **no** se usa para entrar: sirve para los recordatorios de respaldo, el resumen semanal y los avisos de solicitudes.
+- En **iPhone con la app instalada** hay que entrar con correo y contraseña dentro de la app (guarda su sesión aparte de Safari).
+- Protección: máximo 8 intentos por correo cada 15 minutos.
 - Para sumarse a orar se necesita el **enlace de invitación** que se comparte desde la pantalla «Grupo» (por WhatsApp o copiándolo). No hay que escribir ningún código.
 - **Aprobación:** quien se registra por el enlace queda **pendiente**. No ve la agenda ni recibe avisos hasta que alguien con rol líder lo aprueba en «Grupo». A quienes tienen rol líder les llega un aviso por cada solicitud nueva (push, o correo si no tienen push), y la persona recibe un correo cuando la aprueban. Si el enlace se filtra, quien lo use igual queda pendiente; para anularlo, se genera uno nuevo.
 - Quien ora y también tiene pruebas las anota en el formulario público («Anotar mi prueba»), como cualquier joven. Desde la agenda hay un acceso directo. Son dos cosas separadas: los adultos que solo oran no ven esa opción en su cuenta.
-- Sesión de 30 días en una cookie httpOnly. Si se quita a alguien desde «Grupo», su sesión deja de valer de inmediato.
+- Si se quita a alguien desde «Grupo», su sesión deja de valer de inmediato.
 
 ## Agenda
 
 - Agrupada en Hoy, Mañana, Esta semana (hasta el domingo), Más adelante y Hace poco (últimos 2 días, con el ánimo si el joven respondió).
-- "Ya oré" suma una vez por persona (se puede deshacer). El joven ve cuántas personas oraron por él.
+- "Ya oré" suma una vez por persona (se puede deshacer). Sin cifras: cuando alguien ya oró, la tarjeta dice «Ya están orando por …» y el joven ve «Ya están orando por ti».
 - Sin distinciones: todos los orantes y líderes ven y reciben avisos de todos los jóvenes.
 - Quienes tienen rol líder pueden quitar cualquier evaluación (por ejemplo, una falsa).
 - `#/agenda?ev=ID` abre y resalta una tarjeta (lo usarán las notificaciones).
@@ -199,7 +203,7 @@ Usa la base `cr_ora_test`, que **se borra en cada ejecución**. Para usar otra, 
 - Las push solo funcionan desde **iOS 16.4**, y con la app **agregada a la pantalla de inicio** y abierta desde su ícono.
 - Si se abre en Safari sin instalar, la app muestra una guía de 3 pasos: Compartir → «Agregar a pantalla de inicio» → abrir «CR ora» desde el ícono → activar avisos.
 - En iPhone los botones dentro de la notificación no aparecen: tocar el aviso "¿Cómo te fue?" abre la app, donde están los 3 botones.
-- La app instalada guarda su sesión aparte de Safari: hay que entrar con el **código de 6 dígitos** dentro de la app.
+- La app instalada guarda su sesión aparte de Safari: hay que entrar con correo y contraseña dentro de la app.
 
 ### Claves VAPID
 
@@ -274,7 +278,7 @@ Para que **no caigan en spam**:
 ### 5. Prueba en un celular real (cierra la Etapa 4)
 - [ ] En el celular, abre la URL de Vercel (en iPhone, con Safari).
 - [ ] Agrégala a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y ábrela desde el ícono «CR ora».
-- [ ] Entra con tu correo y el código de 6 dígitos.
+- [ ] Entra con tu correo y contraseña.
 - [ ] En Ajustes, toca **Activar avisos en este dispositivo** y acepta.
 - [ ] Toca **Enviar notificación de prueba**: debe llegarte «CR ora por ti» en segundos, incluso con la app cerrada.
 - [ ] Al tocar la notificación, se abre la app.

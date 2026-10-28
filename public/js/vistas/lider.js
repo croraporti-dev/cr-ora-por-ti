@@ -1,6 +1,6 @@
 // Panel de administración (rol líder): resumen de la semana, código de invitación y miembros.
 import { api } from '../api.js';
-import { pintar, esc, conCarga, avisar, confirmar } from '../ui.js';
+import { pintar, esc, conCarga, avisar, confirmar, mostrarEnlace } from '../ui.js';
 
 function cifra(valor, texto, detalle = '') {
   return `<div class="cifra"><strong>${valor}</strong><span>${esc(texto)}</span>${detalle ? `<small>${esc(detalle)}</small>` : ''}</div>`;
@@ -44,9 +44,11 @@ function filaMiembro(m, yo) {
     detalle = `${esc(m.telefono || '')} · ${m.evaluaciones} ${m.evaluaciones === 1 ? 'evaluación' : 'evaluaciones'}`;
     acciones = numero ? `<a class="btn texto" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener">WhatsApp</a>` : '';
   } else {
-    detalle = `${esc(m.email || '')} · avisos ${m.avisosActivos ? 'activos' : 'por correo'}`;
+    detalle = `${esc(m.email || '')} · avisos ${m.avisosActivos ? 'activos' : 'por correo'}${m.tieneClave ? '' : ' · sin contraseña'}`;
+    // Enlace para crear o cambiar la contraseña (por ejemplo, si la olvidó).
+    acciones = '<button class="btn texto" data-accion="acceso">Enviar acceso</button>';
     if (m.id !== yo) {
-      acciones = `<select data-accion="rol" aria-label="Rol de ${nombre}">
+      acciones += `<select data-accion="rol" aria-label="Rol de ${nombre}">
         ${Object.entries(ROLES).map(([k, t]) => `<option value="${k}" ${k === m.rol ? 'selected' : ''}>${t}</option>`).join('')}
       </select>`;
     }
@@ -164,6 +166,19 @@ export async function vistaLider() {
     if (!boton) return;
     const m = persona(boton.closest('.miembro'));
     const accion = boton.dataset.accion;
+
+    if (accion === 'acceso') {
+      await conCarga(boton, null, async () => {
+        const r = await api(`/lider/miembros/${m.id}/acceso`, { metodo: 'POST' });
+        mostrarEnlace({
+          titulo: `Acceso para ${m.nombre}`,
+          texto: 'Con este enlace podrá crear una contraseña nueva. Sirve una sola vez y vence en 24 horas. Envíaselo solo a esa persona.',
+          enlace: r.enlace,
+          mensaje: `Hola ${m.nombre}, con este enlace puedes crear tu contraseña para CR ora por ti:`
+        });
+      });
+      return;
+    }
 
     if (accion === 'aprobar') {
       await conCarga(boton, null, async () => {

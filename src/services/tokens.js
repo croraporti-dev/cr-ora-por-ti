@@ -2,7 +2,8 @@ const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 const config = require('../config');
 
-const DURACION_SESION_DIAS = 30;
+// Sesión larga: con contraseña, casi nunca hay que volver a escribirla en el mismo dispositivo.
+const DURACION_SESION_DIAS = 365;
 
 function hmac(valor, proposito) {
   return crypto.createHmac('sha256', `${config.sessionSecret}:${proposito}`).update(valor).digest('hex');
@@ -12,10 +13,6 @@ function igualesSeguro(a, b) {
   const ba = Buffer.from(a);
   const bb = Buffer.from(b);
   return ba.length === bb.length && crypto.timingSafeEqual(ba, bb);
-}
-
-function codigoSeisDigitos() {
-  return String(crypto.randomInt(0, 1000000)).padStart(6, '0');
 }
 
 function tokenAleatorio(bytes = 32) {
@@ -59,7 +56,6 @@ module.exports = {
   DURACION_SESION_DIAS,
   hmac,
   igualesSeguro,
-  codigoSeisDigitos,
   tokenAleatorio,
   firmarSesion,
   verificarSesion,

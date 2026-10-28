@@ -207,6 +207,11 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .pasos li { display: flex; gap: 12px; align-items: center; }
 .pasos li > :first-child { flex-shrink: 0; }
 
+/* Contraseña con botón Mostrar */
+.clave { position: relative; }
+.clave input { padding-right: 92px; }
+.clave .btn.texto { position: absolute; right: 4px; top: 50%; transform: translateY(-50%); padding: 6px 10px; font-size: 0.85rem; }
+
 /* Diálogo de confirmación */
 .dialogo {
   border: none; border-radius: 16px; padding: 22px 20px 18px;

@@ -1,6 +1,8 @@
 const express = require('express');
 const prisma = require('../db');
-const { requiereSesion } = require('../middleware/auth');
+const { requiereSesion, ponerCookieSesion } = require('../middleware/auth');
+const { limitarPorIp } = require('../middleware/rateLimit');
+const claves = require('../services/claves');
 const { usuarioPublico } = require('../services/usuarios');
 
 const router = express.Router();
@@ -21,6 +23,25 @@ router.get('/', async (req, res, next) => {
         necesitaReactivar: !!prefs?.pushNecesitaReactivar
       }
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/yo/clave — { actual, nueva }: cambiar la contraseña desde Ajustes.
+router.post('/clave', requiereSesion, limitarPorIp('yo-clave', 20, 15 * 60), async (req, res, next) => {
+  try {
+    const nueva = claves.validarClave(req.body.nueva);
+    if (!(await claves.verificar(req.body.actual, req.user.passwordHash))) {
+      return res.status(400).json({ error: 'La contraseña actual no es correcta.' });
+    }
+    // Cierra las sesiones de otros dispositivos y mantiene abierta esta.
+    const user = await prisma.user.update({
+      where: { id: req.user.id },
+      data: { passwordHash: await claves.cifrar(nueva), sessionVersion: { increment: 1 } }
+    });
+    ponerCookieSesion(res, user);
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

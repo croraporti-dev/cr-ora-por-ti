@@ -21,17 +21,6 @@ function boton(url, texto, color = '#2563eb') {
   return `<a href="${escapar(url)}" style="display:inline-block;background:${color};color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:bold;margin:4px 0">${escapar(texto)}</a>`;
 }
 
-function correoAcceso({ codigo, enlace }) {
-  return {
-    subject: `${MARCA}: tu código de acceso es ${codigo}`,
-    text: `Tu código para entrar es: ${codigo}\n\nTambién puedes entrar con este enlace:\n${enlace}\n\nVence en 15 minutos. Si no lo pediste, ignora este correo.`,
-    html: envolver(`<p>Tu código para entrar es:</p>
-<p style="font-size:32px;font-weight:bold;letter-spacing:6px;margin:8px 0 16px">${escapar(codigo)}</p>
-<p>${boton(enlace, 'Entrar a la app')}</p>
-<p style="font-size:14px;color:#64748b">Si usas la app instalada en iPhone, escribe el código dentro de la app (el enlace abre Safari).<br>Vence en 15 minutos. Si no lo pediste, ignora este correo.</p>`)
-  };
-}
-
 // ---------- Avisos de evaluaciones ----------
 const { horaCorta, diaRelativo } = require('./tiempo');
 
@@ -147,7 +136,7 @@ function correoAprobado(persona) {
 }
 
 module.exports = {
-  MARCA, escapar, envolver, boton, correoAcceso, appUrl: () => config.appUrl,
+  MARCA, escapar, envolver, boton, appUrl: () => config.appUrl,
   queTiene, avisoAntes, avisoDespues, avisoJoven, correoAviso, correoResumenSemanal,
   avisoSolicitud, correoAprobado
 };

@@ -41,6 +41,36 @@ export async function conCarga(boton, cajaError, accion) {
 
 export const NOMBRE_ROL = { JOVEN: 'Joven', ORANTE: 'Orante', LIDER: 'Líder' };
 
+// Diálogo para entregar un enlace: compartir por WhatsApp, copiar o cerrar.
+export function mostrarEnlace({ titulo, texto, enlace, mensaje }) {
+  const dialogo = document.createElement('dialog');
+  dialogo.className = 'dialogo';
+  dialogo.innerHTML = `
+    <h2>${esc(titulo)}</h2>
+    <p>${esc(texto)}</p>
+    <p class="enlace-invitacion">${esc(enlace)}</p>
+    <div style="display:grid;gap:10px">
+      <a class="btn" target="_blank" rel="noopener" href="https://wa.me/?text=${encodeURIComponent(`${mensaje} ${enlace}`)}">Enviar por WhatsApp</a>
+      <button type="button" class="btn secundario" data-copiar>Copiar enlace</button>
+      <button type="button" class="btn texto" data-cerrar>Cerrar</button>
+    </div>`;
+  dialogo.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-copiar]')) {
+      try {
+        await navigator.clipboard.writeText(enlace);
+        avisar('Enlace copiado');
+      } catch {
+        avisar('No se pudo copiar; mantén presionado el enlace para copiarlo.');
+      }
+    } else if (e.target.closest('[data-cerrar]') || e.target === dialogo) {
+      dialogo.close();
+    }
+  });
+  dialogo.addEventListener('close', () => dialogo.remove());
+  document.body.append(dialogo);
+  dialogo.showModal();
+}
+
 // Confirmación con el diseño de la app (en vez del confirm() del navegador).
 // Devuelve una promesa: true si acepta, false si cancela, toca fuera o presiona Esc.
 export function confirmar(mensaje, { titulo = '¿Estás seguro?', aceptar = 'Aceptar', cancelar = 'Cancelar', peligro = false } = {}) {

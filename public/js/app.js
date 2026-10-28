@@ -1,6 +1,6 @@
 import { api } from './api.js';
 import { esc } from './ui.js';
-import { vistaLogin, vistaCodigo, vistaEnlace } from './vistas/login.js';
+import { vistaLogin, vistaClave } from './vistas/login.js';
 import { vistaBienvenida, vistaMis } from './vistas/joven.js';
 import { vistaAgenda } from './vistas/agenda.js';
 import { vistaLider } from './vistas/lider.js';
@@ -26,11 +26,10 @@ const PUBLICAS = {
   '/login': (ctx) => vistaLogin({ ...ctx, pestana: 'entrar' }),
   '/registro': (ctx) => vistaLogin({ ...ctx, pestana: 'registro' }),
   '/unirse': (ctx) => vistaLogin({ ...ctx, pestana: 'registro' }),
-  '/codigo': vistaCodigo,
-  '/entrar': vistaEnlace
+  '/clave': vistaClave
 };
 // Login y registro no tienen sentido con sesión iniciada.
-const SOLO_SIN_SESION = ['/login', '/registro', '/unirse', '/codigo'];
+const SOLO_SIN_SESION = ['/login', '/registro', '/unirse'];
 
 // Requieren sesión (orantes y líder).
 const PRIVADAS = {

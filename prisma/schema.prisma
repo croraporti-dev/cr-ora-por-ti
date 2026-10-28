@@ -76,6 +76,8 @@ model User {
   // Orantes nuevos quedan pendientes (null) hasta que alguien con rol líder los aprueba:
   // mientras tanto no ven la agenda ni reciben avisos.
   aprobadoAt     DateTime?
+  // Contraseña cifrada con scrypt (solo orantes y líderes; los jóvenes no tienen)
+  passwordHash   String?
 
   evaluaciones     Evaluation[]
   prefs            NotificationPrefs?
@@ -84,6 +86,7 @@ model User {
   avisos           NotificationLog[]
   codigosCreados   InviteCode[]
   dispositivos     DeviceToken[]
+  enlacesAcceso    EnlaceAcceso[]
 }
 
 // Recuerda al joven en su celular (cookie httpOnly de larga duración). Solo se guarda el hash.
@@ -196,20 +199,19 @@ model Setting {
   updatedAt DateTime @updatedAt
 }
 
-// Código de 6 dígitos + enlace mágico. Solo se guardan hashes.
-model LoginToken {
+// Enlace de un solo uso para crear o cambiar la contraseña (lo envía quien tiene rol líder,
+// o lo entrega el script crear-lider). Solo se guarda el hash.
+model EnlaceAcceso {
   id        String    @id @default(cuid())
-  email     String
-  codeHash  String
-  linkHash  String    @unique
+  userId    String
+  tokenHash String    @unique
   expiresAt DateTime
   usedAt    DateTime?
-  intentos  Int       @default(0)
-  // Datos del registro pendiente (nombre, rol, consentimiento) hasta verificar el correo
-  registro  Json?
   createdAt DateTime  @default(now())
 
-  @@index([email])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 // Rate limiting compartido entre instancias serverless

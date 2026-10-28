@@ -1,11 +1,34 @@
+// Acceso de orantes y líderes: correo + contraseña. Sumarse solo con el enlace de invitación.
 import { api, memoria } from '../api.js';
 import { pintar, conCarga, esc } from '../ui.js';
 
 const AVISO_PRIVACIDAD = `Verás los nombres y las fechas de evaluación de los jóvenes.
 Úsalo solo para orar por ellos y <strong>no compartas esta información</strong> fuera del grupo.`;
 
+// Campo de contraseña con botón "Mostrar" (más fácil en el celular).
+function campoClave(nombre, etiqueta, autocompletar) {
+  return `
+    <label class="campo"><span>${etiqueta}</span>
+      <div class="clave">
+        <input type="password" name="${nombre}" autocomplete="${autocompletar}" minlength="8" required>
+        <button type="button" class="btn texto" data-mostrar>Mostrar</button>
+      </div>
+    </label>`;
+}
+
+function conectarMostrar(contenedor) {
+  contenedor.querySelectorAll('[data-mostrar]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const input = b.previousElementSibling;
+      const ver = input.type === 'password';
+      input.type = ver ? 'text' : 'password';
+      b.textContent = ver ? 'Ocultar' : 'Mostrar';
+    })
+  );
+}
+
 // El enlace de invitación (#/unirse?i=...) se recuerda mientras la persona cambia de pestaña.
-export function vistaLogin({ irA, params, pestana = 'entrar' }) {
+export function vistaLogin({ irA, params, alEntrar, pestana = 'entrar' }) {
   if (params?.get('i')) memoria.guardar('cr_invitacion', params.get('i'));
   const invitacion = memoria.leer('cr_invitacion');
   const vista = pintar(`
@@ -17,11 +40,12 @@ export function vistaLogin({ irA, params, pestana = 'entrar' }) {
     </div>
 
     <form id="f-entrar" class="tarjeta" ${pestana === 'entrar' ? '' : 'hidden'} novalidate>
-      <label class="campo"><span>Tu correo</span>
+      <label class="campo"><span>Correo</span>
         <input type="email" name="email" autocomplete="email" inputmode="email" required></label>
+      ${campoClave('password', 'Contraseña', 'current-password')}
       <p class="error" hidden></p>
-      <button class="btn bloque">Enviarme un código</button>
-      <p class="chico" style="margin-top:12px">Te llegará un código de 6 dígitos. No necesitas contraseña.</p>
+      <button type="submit" class="btn bloque">Entrar</button>
+      <p class="chico" style="margin-top:12px">¿Olvidaste tu contraseña? Pide a quien administra el grupo que te envíe un enlace para crear una nueva.</p>
     </form>
 
     <div class="tarjeta" ${pestana === 'registro' && !invitacion ? '' : 'hidden'}>
@@ -33,87 +57,83 @@ export function vistaLogin({ irA, params, pestana = 'entrar' }) {
       <label class="campo"><span>Tu nombre</span>
         <input type="text" name="nombre" autocomplete="given-name" maxlength="40" required></label>
       <label class="campo"><span>Tu correo</span>
-        <input type="email" name="email" autocomplete="email" inputmode="email" required></label>
+        <input type="email" name="email" autocomplete="email" inputmode="email" required>
+        <small class="chico">Lo usamos para entrar y para enviarte recordatorios si no te llega la notificación.</small></label>
+      ${campoClave('password', 'Crea una contraseña (mínimo 8 caracteres)', 'new-password')}
       <div class="aviso-privacidad">${AVISO_PRIVACIDAD}</div>
       <label class="check"><input type="checkbox" name="aceptaAviso"><span>Me comprometo a cuidar esta información.</span></label>
       <p class="error" hidden></p>
-      <button class="btn bloque">Sumarme al grupo de oración</button>
+      <button type="submit" class="btn bloque">Sumarme al grupo de oración</button>
     </form>
   `);
 
+  conectarMostrar(vista);
   vista.querySelectorAll('[data-pestana]').forEach((b) =>
     b.addEventListener('click', () => irA(b.dataset.pestana === 'registro' ? '#/registro' : '#/login'))
   );
 
-  const fRegistro = vista.querySelector('#f-registro');
-
-  async function solicitar(form, datos) {
-    await conCarga(form.querySelector('button'), form.querySelector('.error'), async () => {
-      const r = await api('/auth/solicitar', { metodo: 'POST', datos });
-      memoria.guardar('cr_email', datos.email);
-      memoria.guardar('cr_mensaje', r.mensaje);
-      irA('#/codigo');
-    });
-  }
-
-  vista.querySelector('#f-entrar').addEventListener('submit', (e) => {
+  const fEntrar = vista.querySelector('#f-entrar');
+  fEntrar.addEventListener('submit', (e) => {
     e.preventDefault();
-    solicitar(e.target, { modo: 'login', email: e.target.email.value.trim() });
+    conCarga(fEntrar.querySelector('button[type=submit]'), fEntrar.querySelector('.error'), async () => {
+      await api('/auth/entrar', { metodo: 'POST', datos: { email: fEntrar.email.value.trim(), password: fEntrar.password.value } });
+      await alEntrar();
+    });
   });
 
+  const fRegistro = vista.querySelector('#f-registro');
   fRegistro.addEventListener('submit', (e) => {
     e.preventDefault();
-    const f = e.target;
-    solicitar(f, {
-      modo: 'registro',
-      invitacion,
-      nombre: f.nombre.value,
-      email: f.email.value.trim(),
-      aceptaAviso: f.aceptaAviso.checked
+    conCarga(fRegistro.querySelector('button[type=submit]'), fRegistro.querySelector('.error'), async () => {
+      await api('/auth/registro', {
+        metodo: 'POST',
+        datos: {
+          invitacion,
+          nombre: fRegistro.nombre.value,
+          email: fRegistro.email.value.trim(),
+          password: fRegistro.password.value,
+          aceptaAviso: fRegistro.aceptaAviso.checked
+        }
+      });
+      await alEntrar();
     });
   });
 }
 
-export function vistaCodigo({ irA, alEntrar }) {
-  const email = memoria.leer('cr_email');
-  if (!email) return irA('#/login');
-  const vista = pintar(`
-    <h1>Revisa tu correo</h1>
-    <p class="sub">${esc(memoria.leer('cr_mensaje') || 'Te enviamos un código de 6 dígitos.')}<br>
-      <span class="chico">Enviado a ${esc(email)}</span></p>
-    <form class="tarjeta" novalidate>
-      <label class="campo"><span>Código de 6 dígitos</span>
-        <input class="codigo-input" name="codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="[0-9]*" required></label>
-      <p class="error" hidden></p>
-      <button class="btn bloque">Entrar</button>
-    </form>
-    <button class="btn texto" id="otro">Usar otro correo o pedir un código nuevo</button>
-  `);
-  const form = vista.querySelector('form');
-  form.codigo.focus();
-  form.codigo.addEventListener('input', () => {
-    form.codigo.value = form.codigo.value.replace(/\D/g, '').slice(0, 6);
-    if (form.codigo.value.length === 6) form.requestSubmit();
-  });
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    conCarga(form.querySelector('button'), form.querySelector('.error'), async () => {
-      const r = await api('/auth/verificar', { metodo: 'POST', datos: { email, codigo: form.codigo.value } });
-      alEntrar(r.user);
-    });
-  });
-  vista.querySelector('#otro').addEventListener('click', () => irA('#/login'));
-}
-
-// Enlace mágico: /#/entrar?t=... (la app hace el POST, no el antivirus del correo).
-export async function vistaEnlace({ irA, alEntrar, params }) {
-  const vista = pintar(`<p class="cargando">Entrando…</p>`);
+// #/clave?t=... — crear o cambiar la contraseña con el enlace de un solo uso.
+export async function vistaClave({ params, alEntrar }) {
+  const t = params.get('t') || '';
+  const vista = pintar('<p class="cargando">Revisando el enlace…</p>');
+  let datos;
   try {
-    const r = await api('/auth/enlace', { metodo: 'POST', datos: { t: params.get('t') || '' } });
-    alEntrar(r.user);
+    datos = await api(`/auth/clave?t=${encodeURIComponent(t)}`);
   } catch (err) {
-    vista.innerHTML = `<h1>No pudimos entrar</h1><p class="error">${esc(err.message)}</p>
-      <a class="btn bloque" href="#/login">Pedir un código nuevo</a>`;
+    vista.innerHTML = `<h1>Enlace no válido</h1><p class="error">${esc(err.message)}</p>
+      <a class="btn secundario bloque" href="#/login">Ir a entrar</a>`;
+    return;
   }
-  void irA;
+  vista.innerHTML = `
+    <h1>Hola, ${esc(datos.nombre)}</h1>
+    <p class="sub">Crea tu contraseña para entrar con <strong>${esc(datos.email)}</strong>.</p>
+    <form class="tarjeta" novalidate>
+      ${campoClave('password', 'Nueva contraseña (mínimo 8 caracteres)', 'new-password')}
+      ${campoClave('repetir', 'Repítela', 'new-password')}
+      <p class="error" hidden></p>
+      <button type="submit" class="btn bloque">Guardar y entrar</button>
+    </form>`;
+  conectarMostrar(vista);
+  const f = vista.querySelector('form');
+  f.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const caja = f.querySelector('.error');
+    if (f.password.value !== f.repetir.value) {
+      caja.textContent = 'Las contraseñas no coinciden.';
+      caja.hidden = false;
+      return;
+    }
+    conCarga(f.querySelector('button[type=submit]'), caja, async () => {
+      await api('/auth/clave', { metodo: 'POST', datos: { t, password: f.password.value } });
+      await alEntrar();
+    });
+  });
 }

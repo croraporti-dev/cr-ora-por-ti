@@ -205,7 +205,7 @@ async function tareasDiarias({ ahora = new Date() } = {}) {
     await prisma.notificationPrefs.updateMany({ where: { userId: u.id }, data: { pushNecesitaReactivar: !sana } });
   }
 
-  await prisma.loginToken.deleteMany({ where: { expiresAt: { lt: new Date(ahora.getTime() - 24 * HORA) } } });
+  await prisma.enlaceAcceso.deleteMany({ where: { expiresAt: { lt: new Date(ahora.getTime() - 24 * HORA) } } });
   await prisma.rateLimit.deleteMany({ where: { resetAt: { lt: ahora } } });
   return { necesitanReactivar };
 }

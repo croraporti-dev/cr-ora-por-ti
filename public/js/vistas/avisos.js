@@ -19,7 +19,7 @@ function guiaIphone(iosViejo) {
         <li>${ICONO_AGREGAR}<div><strong>2. «Agregar a pantalla de inicio»</strong><br><span class="chico">Baja en la lista hasta encontrarlo y toca «Agregar».</span></div></li>
         <li>${ICONO_APP}<div><strong>3. Abre «CR ora» desde el ícono</strong><br><span class="chico">Ahí verás el botón «Activar avisos en este dispositivo».</span></div></li>
       </ol>
-      <p class="chico">Si entras con correo, dentro de la app instalada escribe el código de 6 dígitos (el enlace del correo abre Safari).</p>
+      <p class="chico">Dentro de la app instalada entra con tu correo y contraseña (la app guarda su sesión aparte de Safari).</p>
     </div>`;
 }
 

@@ -1,9 +1,11 @@
-// Crea (o promueve) a la líder y genera el primer código de invitación.
-// Uso: npm run crear-lider -- correo@ejemplo.cl "Nombre"
+// Crea (o promueve) una cuenta con rol líder y entrega un enlace de un solo uso para que elija su contraseña.
+// Uso: npm run crear-lider -- correo@ejemplo.cl "Nombre"        (local)
+//      npm run prod:crear-lider -- correo@ejemplo.cl "Nombre"   (producción, usa .env.produccion)
 const prisma = require('../src/db');
 const v = require('../src/validar');
 const { crearUsuario, prefsPorDefecto } = require('../src/services/usuarios');
 const invitacion = require('../src/services/invitacion');
+const { crearEnlaceAcceso } = require('../src/services/claves');
 
 async function main() {
   const [, , correo, ...partesNombre] = process.argv;
@@ -22,14 +24,15 @@ async function main() {
       create: { userId: user.id, ...prefsPorDefecto('LIDER') },
       update: prefsPorDefecto('LIDER')
     });
-    console.log(`Listo: ${nombre} (${email}) ahora es LÍDER.`);
+    console.log(`Listo: ${nombre} (${email}) ahora tiene rol líder.`);
   } else {
     user = await crearUsuario({ email, nombre, rol: 'LIDER' });
-    console.log(`Listo: líder creada, ${nombre} (${email}).`);
+    console.log(`Listo: cuenta con rol líder creada para ${nombre} (${email}).`);
   }
 
+  console.log(`\nEnlace para crear su contraseña (un solo uso, vence en 24 horas):\n${await crearEnlaceAcceso(user.id, 24)}`);
   const codigo = (await invitacion.codigoActivo()) || (await invitacion.regenerar(user.id));
-  console.log(`Enlace de invitación para orantes: ${invitacion.enlace(codigo.code)}`);
+  console.log(`\nEnlace de invitación para quienes quieran sumarse a orar:\n${invitacion.enlace(codigo.code)}`);
 }
 
 main()

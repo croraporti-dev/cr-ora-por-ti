@@ -10,7 +10,7 @@ function prefsPorDefecto(rol) {
 }
 
 // `aprobado: false` deja a la persona pendiente de aprobación (orantes que se suman por el enlace).
-async function crearUsuario({ email, nombre, rol, aprobado = true }) {
+async function crearUsuario({ email, nombre, rol, aprobado = true, passwordHash = null }) {
   const ahora = new Date();
   return prisma.user.create({
     data: {
@@ -19,6 +19,7 @@ async function crearUsuario({ email, nombre, rol, aprobado = true }) {
       rol,
       aceptoAvisoAt: ahora,
       aprobadoAt: aprobado ? ahora : null,
+      passwordHash,
       prefs: { create: prefsPorDefecto(rol) }
     }
   });

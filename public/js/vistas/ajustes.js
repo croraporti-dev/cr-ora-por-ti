@@ -1,6 +1,6 @@
 // Ajustes de avisos (orantes y líder). Se guarda solo al cambiar cada opción.
 import { api } from '../api.js';
-import { pintar, esc, avisar } from '../ui.js';
+import { pintar, esc, avisar, conCarga } from '../ui.js';
 import { montarTarjetaAvisos } from './avisos.js';
 
 const ANTICIPACIONES = [
@@ -65,7 +65,26 @@ export async function vistaAjustes({ params }) {
       </div>
       <p class="chico">Recibirás avisos de todos los jóvenes del grupo.</p>
     </form>
+
+    <form id="f-clave" class="tarjeta" novalidate style="margin-top:14px">
+      <h2 style="margin-top:0">Cambiar contraseña</h2>
+      <label class="campo"><span>Contraseña actual</span><input type="password" name="actual" autocomplete="current-password" required></label>
+      <label class="campo"><span>Nueva contraseña (mínimo 8 caracteres)</span><input type="password" name="nueva" autocomplete="new-password" minlength="8" required></label>
+      <p class="error" hidden></p>
+      <button type="submit" class="btn secundario bloque">Cambiar contraseña</button>
+      <p class="chico" style="margin-top:10px">Se cerrará tu sesión en los demás dispositivos.</p>
+    </form>
   `;
+
+  const fClave = vista.querySelector('#f-clave');
+  fClave.addEventListener('submit', (e) => {
+    e.preventDefault();
+    conCarga(fClave.querySelector('button[type=submit]'), fClave.querySelector('.error'), async () => {
+      await api('/yo/clave', { metodo: 'POST', datos: { actual: fClave.actual.value, nueva: fClave.nueva.value } });
+      fClave.reset();
+      avisar('Contraseña cambiada');
+    });
+  });
 
   montarTarjetaAvisos(vista.querySelector('#caja-push'), { modo: 'orante', resaltar: params.get('reactivar') === '1' });
 

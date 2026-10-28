@@ -175,6 +175,8 @@ model NotificationLog {
   canal        Canal
   estado       EstadoEnvio @default(ENVIANDO)
   sentAt       DateTime    @default(now())
+  // Reintentos del correo si el proveedor falla (el push fallido no se reintenta: pasa a correo)
+  intentos     Int         @default(1)
   error        String?
 
   user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)

@@ -154,4 +154,10 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .tarjeta.resaltada { border: 2px solid var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
 .animos { display: grid; gap: 8px; }
 
+/* Ajustes */
+.estado-push { border-radius: var(--radius); padding: 12px 14px; margin-bottom: 14px; background: var(--border); }
+.estado-push.bien { background: var(--success-light); color: var(--success); }
+.estado-push.mal { background: var(--calido-light); color: #b45309; }
+.check input[type=radio] { accent-color: var(--primary); }
+
 [hidden] { display: none !important; }

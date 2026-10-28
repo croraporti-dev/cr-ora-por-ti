@@ -1,0 +1,32 @@
+# Llama cada 10 minutos al endpoint que envía los avisos pendientes.
+# El plan gratis de Vercel solo permite 1 cron diario, por eso se usa GitHub Actions.
+# GitHub puede atrasar la ejecución varios minutos: la app lo tolera (ventanas amplias + NotificationLog).
+#
+# Secretos del repositorio (Settings → Secrets and variables → Actions):
+#   APP_URL      https://tu-app.vercel.app   (sin "/" final)
+#   CRON_SECRET  el mismo valor que en Vercel
+name: Enviar avisos
+
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: enviar-avisos
+  cancel-in-progress: false
+
+jobs:
+  avisos:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Llamar a /api/cron/enviar-avisos
+        env:
+          APP_URL: ${{ secrets.APP_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 10 --retry-all-errors --max-time 60 \
+            -X POST -H "x-cron-secret: ${CRON_SECRET}" \
+            "${APP_URL}/api/cron/enviar-avisos"

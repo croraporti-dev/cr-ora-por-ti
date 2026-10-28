@@ -4,6 +4,7 @@ import { vistaLogin, vistaCodigo, vistaEnlace } from './vistas/login.js';
 import { vistaBienvenida, vistaMis } from './vistas/joven.js';
 import { vistaAgenda } from './vistas/agenda.js';
 import { vistaLider } from './vistas/lider.js';
+import { vistaAjustes } from './vistas/ajustes.js';
 
 const estado = { user: null };
 
@@ -22,11 +23,13 @@ const SOLO_SIN_SESION = ['/login', '/registro', '/codigo'];
 // Requieren sesión (orantes y líder).
 const PRIVADAS = {
   '/agenda': { vista: vistaAgenda },
+  '/ajustes': { vista: vistaAjustes },
   '/lider': { vista: vistaLider, roles: ['LIDER'] }
 };
 
 const MENU = [
   { ruta: '#/agenda', texto: 'Agenda' },
+  { ruta: '#/ajustes', texto: 'Ajustes' },
   { ruta: '#/lider', texto: 'Líder', roles: ['LIDER'] },
   { ruta: '#/salir', texto: 'Salir' }
 ];

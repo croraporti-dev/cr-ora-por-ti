@@ -188,6 +188,13 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .miembro-acciones { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
 .miembro-acciones select { width: auto; padding: 6px 8px; font-size: 0.85rem; }
 .miembro-acciones .btn.texto { padding: 6px 8px; font-size: 0.85rem; }
+.btn.chico-btn { min-height: 0; padding: 6px 12px; font-size: 0.85rem; }
+.solicitudes { background: var(--calido-light); border-radius: 10px; padding: 4px 12px 10px; margin-bottom: 8px; }
+.solicitudes .miembro { border-top-color: #fde7c7; }
+.enlace-invitacion {
+  font-size: 0.85rem; background: var(--background); border-radius: 10px; padding: 10px 12px;
+  margin: 8px 0 14px; overflow-wrap: anywhere; color: var(--text-muted);
+}
 
 /* Avisos y guía de iPhone */
 .banner {

@@ -42,6 +42,8 @@ function requiereRol(...roles) {
   return (req, res, next) => {
     if (!req.user) return res.status(401).json({ error: 'Tu sesión terminó. Vuelve a entrar.' });
     if (!roles.includes(req.user.rol)) return res.status(403).json({ error: 'No tienes permiso para esto.' });
+    // Quien se sumó por el enlace no ve nada hasta que lo aprueben.
+    if (!req.user.aprobadoAt) return res.status(403).json({ error: 'Tu solicitud aún no ha sido aprobada.', pendiente: true });
     next();
   };
 }

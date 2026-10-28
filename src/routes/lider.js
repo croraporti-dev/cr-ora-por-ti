@@ -1,8 +1,9 @@
-// Panel del grupo (rol líder): resumen de la semana, código de invitación y administración de miembros.
+// Panel del grupo (rol líder): resumen de la semana, enlace de invitación, solicitudes y miembros.
 const express = require('express');
 const prisma = require('../db');
 const { requiereRol } = require('../middleware/auth');
 const invitacion = require('../services/invitacion');
+const { avisarAprobacion } = require('../services/solicitudes');
 const { nombreVisible } = require('../services/evaluaciones');
 const { ahoraLocal } = require('../services/tiempo');
 const v = require('../validar');
@@ -28,7 +29,7 @@ router.get('/resumen', async (req, res, next) => {
       }),
       prisma.notificationLog.groupBy({ by: ['canal'], where: { estado: 'OK', sentAt: enLaSemana }, _count: true }),
       prisma.user.findMany({
-        where: { rol: { in: ['ORANTE', 'LIDER'] } },
+        where: { rol: { in: ['ORANTE', 'LIDER'] }, aprobadoAt: { not: null } },
         select: { _count: { select: { pushSubs: { where: { activa: true } } } } }
       })
     ]);
@@ -51,21 +52,21 @@ router.get('/resumen', async (req, res, next) => {
   }
 });
 
-// GET /api/lider/invitacion — código vigente
+// GET /api/lider/invitacion — enlace vigente
 router.get('/invitacion', async (req, res, next) => {
   try {
     const actual = (await invitacion.codigoActivo()) || (await invitacion.regenerar(req.user.id));
-    res.json({ codigo: actual.code, creado: actual.createdAt });
+    res.json({ enlace: invitacion.enlace(actual.code), creado: actual.createdAt });
   } catch (err) {
     next(err);
   }
 });
 
-// POST /api/lider/invitacion — crea un código nuevo y anula el anterior
+// POST /api/lider/invitacion — crea un enlace nuevo y anula el anterior
 router.post('/invitacion', async (req, res, next) => {
   try {
     const nuevo = await invitacion.regenerar(req.user.id);
-    res.json({ codigo: nuevo.code, creado: nuevo.createdAt });
+    res.json({ enlace: invitacion.enlace(nuevo.code), creado: nuevo.createdAt });
   } catch (err) {
     next(err);
   }
@@ -77,14 +78,32 @@ router.get('/miembros', async (req, res, next) => {
     const miembros = await prisma.user.findMany({
       orderBy: [{ rol: 'asc' }, { nombre: 'asc' }],
       select: {
-        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, esMenor: true, createdAt: true,
+        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, esMenor: true, createdAt: true, aprobadoAt: true,
         _count: { select: { evaluaciones: true, pushSubs: { where: { activa: true } } } }
       }
     });
     res.json({
       yo: req.user.id,
-      miembros: miembros.map(({ _count, ...m }) => ({ ...m, evaluaciones: _count.evaluaciones, avisosActivos: _count.pushSubs > 0 }))
+      miembros: miembros.map(({ _count, aprobadoAt, ...m }) => ({
+        ...m,
+        pendiente: !aprobadoAt,
+        evaluaciones: _count.evaluaciones,
+        avisosActivos: _count.pushSubs > 0
+      }))
     });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// POST /api/lider/miembros/:id/aprobar — acepta una solicitud para sumarse a orar
+router.post('/miembros/:id/aprobar', async (req, res, next) => {
+  try {
+    const r = await prisma.user.updateMany({ where: { id: req.params.id, aprobadoAt: null }, data: { aprobadoAt: new Date() } });
+    if (!r.count) return res.status(404).json({ error: 'Esa solicitud ya no está pendiente.' });
+    const persona = await prisma.user.findUnique({ where: { id: req.params.id } });
+    avisarAprobacion(persona).catch((err) => console.error('[aprobación]', err.message));
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

@@ -1,17 +1,12 @@
-const crypto = require('crypto');
+// Enlace de invitación para sumarse a orar: /#/unirse?i=<token>.
+// Quien entra por el enlace queda pendiente hasta que alguien con rol líder lo aprueba,
+// así que un enlace filtrado no da acceso a la agenda.
 const prisma = require('../db');
+const config = require('../config');
+const { tokenAleatorio } = require('./tokens');
 
-// Sin letras confusas (0/O, 1/I/L) para dictarlo fácil por WhatsApp.
-const ALFABETO = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
-
-function generarCodigo() {
-  let s = '';
-  for (let i = 0; i < 6; i++) s += ALFABETO[crypto.randomInt(ALFABETO.length)];
-  return `CR-${s}`;
-}
-
-function normalizar(codigo) {
-  return String(codigo || '').trim().toUpperCase().replace(/\s+/g, '');
+function enlace(code) {
+  return `${config.appUrl}/#/unirse?i=${encodeURIComponent(code)}`;
 }
 
 async function codigoActivo() {
@@ -19,18 +14,18 @@ async function codigoActivo() {
 }
 
 async function esCodigoValido(codigo) {
-  const c = normalizar(codigo);
-  const conGuion = c.startsWith('CR-') ? c : `CR-${c.replace(/^CR/, '')}`;
-  const fila = await prisma.inviteCode.findUnique({ where: { code: conGuion } });
+  const c = String(codigo || '').trim();
+  if (!c || c.length > 100) return false;
+  const fila = await prisma.inviteCode.findUnique({ where: { code: c } });
   return !!fila?.activo;
 }
 
-// Desactiva el código anterior y crea uno nuevo.
+// Desactiva el enlace anterior y crea uno nuevo.
 async function regenerar(creadoPorId) {
   return prisma.$transaction(async (tx) => {
     await tx.inviteCode.updateMany({ where: { activo: true }, data: { activo: false } });
-    return tx.inviteCode.create({ data: { code: generarCodigo(), createdById: creadoPorId || null } });
+    return tx.inviteCode.create({ data: { code: tokenAleatorio(16), createdById: creadoPorId || null } });
   });
 }
 
-module.exports = { codigoActivo, esCodigoValido, regenerar, normalizar };
+module.exports = { codigoActivo, esCodigoValido, regenerar, enlace };

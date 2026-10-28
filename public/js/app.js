@@ -6,6 +6,7 @@ import { vistaAgenda } from './vistas/agenda.js';
 import { vistaLider } from './vistas/lider.js';
 import { vistaAjustes } from './vistas/ajustes.js';
 import * as push from './push.js';
+import { vistaPendiente } from './vistas/pendiente.js';
 
 const estado = { user: null, avisos: null };
 
@@ -24,11 +25,12 @@ const PUBLICAS = {
   '/mis': vistaMis,
   '/login': (ctx) => vistaLogin({ ...ctx, pestana: 'entrar' }),
   '/registro': (ctx) => vistaLogin({ ...ctx, pestana: 'registro' }),
+  '/unirse': (ctx) => vistaLogin({ ...ctx, pestana: 'registro' }),
   '/codigo': vistaCodigo,
   '/entrar': vistaEnlace
 };
 // Login y registro no tienen sentido con sesión iniciada.
-const SOLO_SIN_SESION = ['/login', '/registro', '/codigo'];
+const SOLO_SIN_SESION = ['/login', '/registro', '/unirse', '/codigo'];
 
 // Requieren sesión (orantes y líder).
 const PRIVADAS = {
@@ -56,7 +58,9 @@ function pintarMenu(ruta) {
     return;
   }
   nav.hidden = false;
-  nav.innerHTML = MENU.filter((m) => !m.roles || m.roles.includes(estado.user.rol))
+  // Mientras su solicitud está pendiente solo puede salir.
+  const menu = estado.user.pendiente ? MENU.filter((m) => m.ruta === '#/salir') : MENU;
+  nav.innerHTML = menu.filter((m) => !m.roles || m.roles.includes(estado.user.rol))
     .map((m) => `<a href="${m.ruta}" class="${m.ruta === '#' + ruta ? 'activo' : ''}">${esc(m.texto)}</a>`)
     .join('');
 }
@@ -94,6 +98,18 @@ async function render() {
   const privada = PRIVADAS[ruta];
   if (!privada) return irA('#/');
   if (!estado.user) return irA('#/login');
+  if (estado.user.pendiente) {
+    pintarMenu(ruta);
+    // alRevisar devuelve true si sigue pendiente.
+    return vistaPendiente({
+      alRevisar: async () => {
+        await cargarSesion();
+        if (estado.user?.pendiente) return true;
+        render();
+        return false;
+      }
+    });
+  }
   if (privada.roles && !privada.roles.includes(estado.user.rol)) return irA('#/agenda');
   pintarMenu(ruta);
   await privada.vista(ctx);

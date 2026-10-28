@@ -29,6 +29,16 @@ function filaMiembro(m, yo) {
   const nombre = esc([m.nombre, m.apellido].filter(Boolean).join(' '));
   let detalle;
   let acciones = '';
+  if (m.pendiente) {
+    return `
+    <li class="miembro" data-id="${esc(m.id)}">
+      <div class="miembro-datos"><strong>${nombre}</strong><span class="chico">${esc(m.email || '')}${m.esMenor ? ' · menor de edad' : ''}</span></div>
+      <div class="miembro-acciones">
+        <button class="btn secundario chico-btn" data-accion="aprobar">Aprobar</button>
+        <button class="btn texto peligro-texto" data-accion="rechazar">Rechazar</button>
+      </div>
+    </li>`;
+  }
   if (m.rol === 'JOVEN') {
     const numero = (m.telefono || '').replace('+', '');
     detalle = `${esc(m.telefono || '')}${m.esMenor ? ' · menor de edad' : ''} · ${m.evaluaciones} ${m.evaluaciones === 1 ? 'evaluación' : 'evaluaciones'}`;
@@ -58,10 +68,13 @@ function grupoMiembros(titulo, lista, yo, vacio) {
 
 async function pintarMiembros(caja) {
   const { miembros, yo } = await api('/lider/miembros');
-  const de = (rol) => miembros.filter((m) => m.rol === rol);
+  const pendientes = miembros.filter((m) => m.pendiente);
+  const de = (rol) => miembros.filter((m) => m.rol === rol && !m.pendiente);
   caja.innerHTML = `
+    ${pendientes.length ? `<div class="solicitudes">${grupoMiembros('Solicitudes para orar', pendientes, yo, '')}
+      <p class="chico">Aprueba solo a personas que conozcas: verán los nombres de los jóvenes.</p></div>` : ''}
     ${grupoMiembros('Líderes', de('LIDER'), yo, '')}
-    ${grupoMiembros('Orantes', de('ORANTE'), yo, 'Aún no hay orantes. Comparte el código de invitación.')}
+    ${grupoMiembros('Orantes', de('ORANTE'), yo, 'Aún no hay orantes. Comparte el enlace de invitación.')}
     ${grupoMiembros('Jóvenes', de('JOVEN'), yo, 'Aún no hay jóvenes registrados.')}`;
   return miembros;
 }
@@ -72,12 +85,13 @@ export async function vistaLider() {
     <div class="tarjeta" id="caja-resumen"><p class="cargando">Cargando…</p></div>
 
     <div class="tarjeta">
-      <h2 style="margin-top:0">Código de invitación</h2>
-      <p class="chico">Compártelo con quien quiera sumarse a orar por los jóvenes. Los jóvenes no lo necesitan para anotar sus pruebas. Si generas uno nuevo, el anterior deja de funcionar.</p>
-      <p class="codigo-invitacion" id="codigo">…</p>
+      <h2 style="margin-top:0">Invitar a orar</h2>
+      <p class="chico">Comparte este enlace con quien quiera sumarse a orar por los jóvenes. Cada persona que se registre quedará pendiente hasta que la apruebes aquí. Los jóvenes no lo necesitan para anotar sus pruebas.</p>
+      <p class="enlace-invitacion" id="codigo">…</p>
       <div style="display:grid;gap:10px">
-        <button class="btn secundario" id="copiar">Copiar código</button>
-        <button class="btn peligro" id="nuevo">Generar un código nuevo</button>
+        <a class="btn" id="whatsapp" target="_blank" rel="noopener" href="#">Compartir por WhatsApp</a>
+        <button class="btn secundario" id="copiar">Copiar enlace</button>
+        <button class="btn texto peligro-texto" id="nuevo">Generar un enlace nuevo</button>
       </div>
     </div>
 
@@ -100,8 +114,13 @@ export async function vistaLider() {
     .then((m) => { miembros = m; })
     .catch((err) => { cajaMiembros.innerHTML = `<p class="error">${esc(err.message)}</p>`; });
 
+  const mostrarEnlace = (enlace) => {
+    caja.textContent = enlace;
+    const texto = `Te invito a sumarte a orar por los jóvenes de CR: ${enlace}`;
+    vista.querySelector('#whatsapp').href = `https://wa.me/?text=${encodeURIComponent(texto)}`;
+  };
   api('/lider/invitacion')
-    .then((r) => { caja.textContent = r.codigo; })
+    .then((r) => mostrarEnlace(r.enlace))
     .catch((err) => { caja.textContent = '—'; avisar(err.message); });
   cargarResumen();
   cargarMiembros();
@@ -109,16 +128,16 @@ export async function vistaLider() {
   vista.querySelector('#copiar').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(caja.textContent);
-      avisar('Código copiado');
+      avisar('Enlace copiado');
     } catch {
-      avisar('No se pudo copiar; mantén presionado el código para copiarlo.');
+      avisar('No se pudo copiar; mantén presionado el enlace para copiarlo.');
     }
   });
   vista.querySelector('#nuevo').addEventListener('click', (e) => {
-    if (!confirm('¿Generar un código nuevo? El actual dejará de servir para registrarse.')) return;
+    if (!confirm('¿Generar un enlace nuevo? El actual dejará de servir para registrarse. Úsalo si el enlace se compartió con quien no debía.')) return;
     conCarga(e.currentTarget, null, async () => {
-      caja.textContent = (await api('/lider/invitacion', { metodo: 'POST' })).codigo;
-      avisar('Listo, hay un código nuevo');
+      mostrarEnlace((await api('/lider/invitacion', { metodo: 'POST' })).enlace);
+      avisar('Listo, hay un enlace nuevo');
     });
   });
 
@@ -140,14 +159,28 @@ export async function vistaLider() {
   });
 
   cajaMiembros.addEventListener('click', async (ev) => {
-    const boton = ev.target.closest('button[data-accion=quitar]');
+    const boton = ev.target.closest('button[data-accion]');
     if (!boton) return;
     const m = persona(boton.closest('.miembro'));
-    const extra = m.rol === 'JOVEN' ? ' y todas sus evaluaciones' : '';
-    if (!confirm(`¿Quitar a ${m.nombre} del grupo? Se borrarán sus datos${extra}. No se puede deshacer.`)) return;
+    const accion = boton.dataset.accion;
+
+    if (accion === 'aprobar') {
+      await conCarga(boton, null, async () => {
+        await api(`/lider/miembros/${m.id}/aprobar`, { metodo: 'POST' });
+        avisar(`${m.nombre} ya puede orar con el grupo. Le avisamos por correo.`);
+        await Promise.all([cargarMiembros(), cargarResumen()]);
+      });
+      return;
+    }
+
+    if (accion !== 'quitar' && accion !== 'rechazar') return;
+    const pregunta = accion === 'rechazar'
+      ? `¿Rechazar la solicitud de ${m.nombre}? No podrá ver la agenda.`
+      : `¿Quitar a ${m.nombre} del grupo? Se borrarán sus datos${m.rol === 'JOVEN' ? ' y todas sus evaluaciones' : ''}. No se puede deshacer.`;
+    if (!confirm(pregunta)) return;
     await conCarga(boton, null, async () => {
       await api(`/lider/miembros/${m.id}`, { metodo: 'DELETE' });
-      avisar(`${m.nombre} ya no está en el grupo`);
+      avisar(accion === 'rechazar' ? 'Solicitud rechazada' : `${m.nombre} ya no está en el grupo`);
       await Promise.all([cargarMiembros(), cargarResumen()]);
     });
   });

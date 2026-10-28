@@ -129,7 +129,7 @@ async function avisarJoven({ ev, ahora, stats }) {
 // Todos los orantes y líderes reciben avisos de todos los jóvenes, sin distinciones.
 async function cargarOrantes() {
   const usuarios = await prisma.user.findMany({
-    where: { rol: { in: ['ORANTE', 'LIDER'] } },
+    where: { rol: { in: ['ORANTE', 'LIDER'] }, aprobadoAt: { not: null } },
     include: { prefs: true, _count: { select: { pushSubs: { where: { activa: true } } } } }
   });
   return usuarios.map((u) => ({
@@ -230,7 +230,7 @@ async function resumenSemanal({ ahora = new Date() } = {}) {
         where: { resultadoAnimo: 'NECESITA_ORACION', fechaHora: { gte: local.minus({ days: 7 }).toJSDate() } },
         include: { user: { select: { nombre: true, apellido: true } } }
       }),
-      prisma.user.findMany({ where: { rol: 'LIDER', email: { not: null } }, select: { email: true } })
+      prisma.user.findMany({ where: { rol: 'LIDER', email: { not: null }, aprobadoAt: { not: null } }, select: { email: true } })
     ]);
     const correo = plantillas.correoResumenSemanal({
       proximas: proximas.map((e) => ({ ...e, nombre: nombreVisible(e.user) })),

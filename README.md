@@ -16,7 +16,7 @@ npm install
 cp .env.example .env        # en local basta con DATABASE_URL, DIRECT_URL y MAIL_PROVIDER=consola
 npm run db:local            # Postgres embebido en localhost:54329 (déjalo corriendo en otra terminal)
 npx prisma migrate dev      # crea las tablas
-npm run crear-lider -- tu@correo.cl "Tu Nombre"   # crea una cuenta con rol líder y muestra el código de invitación
+npm run crear-lider -- tu@correo.cl "Tu Nombre"   # crea una cuenta con rol líder y muestra el enlace de invitación
 npm run dev                 # http://localhost:3000
 ```
 
@@ -79,7 +79,9 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 **Orantes (`ORANTE`) y líder (`LIDER`): con correo, sin contraseña.**
 - Cada correo trae un **código de 6 dígitos** y un **enlace mágico** (vencen en 15 min y sirven una sola vez).
 - En **iPhone con la app instalada** hay que escribir el código dentro de la app: el enlace del correo se abre en Safari, que guarda su sesión aparte.
-- Para sumarse como orante se necesita el **código de invitación** que se ve (y se puede cambiar) en la pantalla «Grupo», porque la agenda muestra nombres de menores.
+- Para sumarse a orar se necesita el **enlace de invitación** que se comparte desde la pantalla «Grupo» (por WhatsApp o copiándolo). No hay que escribir ningún código.
+- **Aprobación:** quien se registra por el enlace queda **pendiente**. No ve la agenda ni recibe avisos hasta que alguien con rol líder lo aprueba en «Grupo». A quienes tienen rol líder les llega un aviso por cada solicitud nueva (push, o correo si no tienen push), y la persona recibe un correo cuando la aprueban. Si el enlace se filtra, quien lo use igual queda pendiente; para anularlo, se genera uno nuevo.
+- Quien ora y también tiene pruebas las anota en el formulario público («Anotar mi prueba»), como cualquier joven. Desde la agenda hay un acceso directo. Son dos cosas separadas: los adultos que solo oran no ven esa opción en su cuenta.
 - Sesión de 30 días en una cookie httpOnly. Si se quita a alguien desde «Grupo», su sesión deja de valer de inmediato.
 
 ## Agenda
@@ -100,7 +102,8 @@ Menú «Grupo» (solo rol LIDER):
   - avisos enviados por push y por correo;
   - cuántos orantes tienen avisos activos;
   - quién pidió oración en los últimos 7 días.
-- **Código de invitación** para nuevos orantes: copiar o generar uno nuevo (el anterior deja de servir).
+- **Solicitudes para orar:** aprobar o rechazar a quienes se registraron con el enlace.
+- **Invitar a orar:** enlace para compartir por WhatsApp o copiar, y botón para generar uno nuevo (el anterior deja de servir).
 - **Miembros**, agrupados en líderes, orantes y jóvenes:
   - Jóvenes: celular, si es menor de edad y cuántas evaluaciones tiene, con un enlace a WhatsApp para escribirle fuera de la app.
   - Orantes: correo y si tiene avisos activos o los recibe por correo.
@@ -228,7 +231,7 @@ Desde el celular se necesita HTTPS, así que hay que probar con la app desplegad
    npm run db:deploy
    npm run crear-lider -- correo-de-la-lider@ejemplo.cl "Nombre"
    ```
-   El segundo comando muestra el código de invitación.
+   El segundo comando muestra el enlace de invitación (también está en la pantalla «Grupo»).
 
 Supabase pausa los proyectos gratis tras 7 días sin uso. El cron consulta la base cada 10 minutos, así que no debería pausarse.
 

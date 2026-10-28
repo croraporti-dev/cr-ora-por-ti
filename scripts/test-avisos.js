@@ -61,10 +61,14 @@ async function limpiar() {
 }
 
 let n = 0;
-async function orante({ rol = 'ORANTE', push: conPush = null, ...prefs } = {}) {
+async function orante({ rol = 'ORANTE', push: conPush = null, pendiente = false, ...prefs } = {}) {
   n++;
   const u = await prisma.user.create({
-    data: { email: `persona${n}@prueba.cl`, nombre: `Persona${n}`, rol, prefs: { create: { ...prefsPorDefecto(rol), ...prefs } } }
+    data: {
+      email: `persona${n}@prueba.cl`, nombre: `Persona${n}`, rol,
+      aprobadoAt: pendiente ? null : new Date(),
+      prefs: { create: { ...prefsPorDefecto(rol), ...prefs } }
+    }
   });
   if (conPush) {
     const endpoint = `https://push.test/${u.id}`;
@@ -185,6 +189,16 @@ test('sin distinciones: cada orante recibe el aviso de cada joven', async () => 
     assert.match(cuerpos, /Camila/);
     assert.match(cuerpos, /Diego/);
   }
+});
+
+test('quien espera aprobación no recibe avisos', async () => {
+  const aprobado = await orante({ push: 'ok' });
+  const pendiente = await orante({ push: 'ok', pendiente: true });
+  await evaluacion(await joven(), new Date(Date.now() + 40 * 60 * 1000));
+  await avisos.enviarAvisosPendientes({ ahora: new Date() });
+  assert.equal(pushesPara(aprobado).length, 1);
+  assert.equal(pushesPara(pendiente).length, 0);
+  assert.equal(correosPara(pendiente).length, 0);
 });
 
 test('respeta la anticipación: 3 horas no avisa a las 3 h 10 min, sí a las 2 h 50 min', async () => {

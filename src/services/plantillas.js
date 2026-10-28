@@ -120,7 +120,34 @@ function correoResumenSemanal({ proximas, oracionesSemana, pidieronOracion }) {
   };
 }
 
+// ---------- Solicitudes para sumarse a orar ----------
+
+function avisoSolicitud(persona) {
+  const texto = `${persona.nombre} (${persona.email}) quiere sumarse a orar por los jóvenes. Revisa la solicitud en «Grupo».`;
+  const url = `${config.appUrl}/#/lider`;
+  return {
+    push: { title: 'Nueva solicitud para orar', body: texto, url: '/#/lider', tag: `solicitud-${persona.id}` },
+    correo: {
+      subject: `${MARCA}: ${persona.nombre} quiere sumarse a orar`,
+      text: `${texto}\n\nAprobar o rechazar: ${url}`,
+      html: envolver(`<p>${escapar(texto)}</p><p>${boton(url, 'Revisar solicitud')}</p>`)
+    }
+  };
+}
+
+function correoAprobado(persona) {
+  const url = `${config.appUrl}/#/agenda`;
+  const texto = `Hola, ${persona.nombre}. Ya eres parte del grupo de oración: desde ahora puedes ver la agenda y recibir avisos para orar por los jóvenes.`;
+  return {
+    subject: `${MARCA}: ya puedes orar con nosotros`,
+    text: `${texto}\n\nAbrir la agenda: ${url}\n\nTe recomendamos activar los avisos en Ajustes.`,
+    html: envolver(`<p>${escapar(texto)}</p><p>${boton(url, 'Abrir la agenda')}</p>
+      <p style="font-size:14px;color:#64748b">Te recomendamos activar los avisos en Ajustes.</p>`)
+  };
+}
+
 module.exports = {
   MARCA, escapar, envolver, boton, correoAcceso, appUrl: () => config.appUrl,
-  queTiene, avisoAntes, avisoDespues, avisoJoven, correoAviso, correoResumenSemanal
+  queTiene, avisoAntes, avisoDespues, avisoJoven, correoAviso, correoResumenSemanal,
+  avisoSolicitud, correoAprobado
 };

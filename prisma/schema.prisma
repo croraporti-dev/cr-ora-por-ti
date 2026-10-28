@@ -75,6 +75,9 @@ model User {
   apoderadoAt    DateTime?
   // Se incrementa para invalidar todas las sesiones del usuario
   sessionVersion Int      @default(0)
+  // Orantes nuevos quedan pendientes (null) hasta que alguien con rol líder los aprueba:
+  // mientras tanto no ven la agenda ni reciben avisos.
+  aprobadoAt     DateTime?
 
   evaluaciones     Evaluation[]
   prefs            NotificationPrefs?

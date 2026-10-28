@@ -4,7 +4,10 @@ import { pintar, conCarga, esc } from '../ui.js';
 const AVISO_PRIVACIDAD = `Verás los nombres y las fechas de evaluación de los jóvenes, y algunos son menores de edad.
 Úsalo solo para orar por ellos y <strong>no compartas esta información</strong> fuera del grupo.`;
 
-export function vistaLogin({ irA, pestana = 'entrar' }) {
+// El enlace de invitación (#/unirse?i=...) se recuerda mientras la persona cambia de pestaña.
+export function vistaLogin({ irA, params, pestana = 'entrar' }) {
+  if (params?.get('i')) memoria.guardar('cr_invitacion', params.get('i'));
+  const invitacion = memoria.leer('cr_invitacion');
   const vista = pintar(`
     <h1>Entrar para orar</h1>
     <p class="sub">Para quienes quieren orar por los jóvenes. ¿Eres joven? <a href="#/mis">Anota tu prueba aquí</a>, sin cuenta.</p>
@@ -21,9 +24,12 @@ export function vistaLogin({ irA, pestana = 'entrar' }) {
       <p class="chico" style="margin-top:12px">Te llegará un código de 6 dígitos. No necesitas contraseña.</p>
     </form>
 
-    <form id="f-registro" class="tarjeta" ${pestana === 'registro' ? '' : 'hidden'} novalidate>
-      <label class="campo"><span>Código de invitación</span>
-        <input type="text" name="codigoInvitacion" autocomplete="off" autocapitalize="characters" placeholder="CR-XXXXXX" required></label>
+    <div class="tarjeta" ${pestana === 'registro' && !invitacion ? '' : 'hidden'}>
+      <p>Para sumarte al grupo de oración necesitas el <strong>enlace de invitación</strong>. Pídeselo a quien te invitó a orar y ábrelo en este dispositivo.</p>
+    </div>
+
+    <form id="f-registro" class="tarjeta" ${pestana === 'registro' && invitacion ? '' : 'hidden'} novalidate>
+      <p class="chico" style="margin-bottom:14px">Después de registrarte, alguien del equipo revisará tu solicitud. Cuando te aprueben podrás ver la agenda.</p>
       <label class="campo"><span>Tu nombre</span>
         <input type="text" name="nombre" autocomplete="given-name" maxlength="40" required></label>
       <label class="campo"><span>Tu correo</span>
@@ -65,7 +71,7 @@ export function vistaLogin({ irA, pestana = 'entrar' }) {
     const f = e.target;
     solicitar(f, {
       modo: 'registro',
-      codigoInvitacion: f.codigoInvitacion.value,
+      invitacion,
       nombre: f.nombre.value,
       email: f.email.value.trim(),
       aceptaAviso: f.aceptaAviso.checked,

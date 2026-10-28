@@ -16,7 +16,7 @@ async function main() {
 
   let user = await prisma.user.findUnique({ where: { email } });
   if (user) {
-    user = await prisma.user.update({ where: { id: user.id }, data: { rol: 'LIDER', nombre } });
+    user = await prisma.user.update({ where: { id: user.id }, data: { rol: 'LIDER', nombre, aprobadoAt: user.aprobadoAt || new Date() } });
     await prisma.notificationPrefs.upsert({
       where: { userId: user.id },
       create: { userId: user.id, ...prefsPorDefecto('LIDER') },
@@ -29,7 +29,7 @@ async function main() {
   }
 
   const codigo = (await invitacion.codigoActivo()) || (await invitacion.regenerar(user.id));
-  console.log(`Código de invitación vigente: ${codigo.code}`);
+  console.log(`Enlace de invitación para orantes: ${invitacion.enlace(codigo.code)}`);
 }
 
 main()

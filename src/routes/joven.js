@@ -50,7 +50,7 @@ router.post('/perfil', limitarPorIp('joven-perfil', 100, 60 * 60), async (req, r
     const joven = existente
       ? await prisma.user.update({ where: { id: existente.id }, data: { nombre, apellido, ...consentimiento } })
       : await prisma.user.create({
-          data: { nombre, apellido, telefono, rol: 'JOVEN', ...consentimiento, prefs: { create: prefsPorDefecto('JOVEN') } }
+          data: { nombre, apellido, telefono, rol: 'JOVEN', ...consentimiento, aprobadoAt: ahora, prefs: { create: prefsPorDefecto('JOVEN') } }
         });
 
     await olvidarDispositivo(req, res);

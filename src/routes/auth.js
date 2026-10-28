@@ -9,6 +9,7 @@ const { enviarCorreo } = require('../services/mailer');
 const { correoAcceso } = require('../services/plantillas');
 const { esCodigoValido } = require('../services/invitacion');
 const { crearUsuario, usuarioPublico } = require('../services/usuarios');
+const { avisarNuevaSolicitud } = require('../services/solicitudes');
 
 const router = express.Router();
 
@@ -30,8 +31,8 @@ router.post('/solicitar', limitarPorIp('auth-solicitar', 40, 15 * 60), async (re
     let registro = null;
 
     if (modo === 'registro' && !existente) {
-      if (!(await esCodigoValido(req.body.codigoInvitacion))) {
-        return res.status(400).json({ error: 'El código de invitación no es válido. Pídeselo a quien te invitó a orar.' });
+      if (!(await esCodigoValido(req.body.invitacion))) {
+        return res.status(400).json({ error: 'Este enlace de invitación ya no es válido. Pide uno nuevo a quien te invitó a orar.' });
       }
       const esMenor = req.body.esMenor === true;
       if (req.body.aceptaAviso !== true) {
@@ -45,7 +46,9 @@ router.post('/solicitar', limitarPorIp('auth-solicitar', 40, 15 * 60), async (re
         // Con correo solo se registran orantes; los jóvenes usan el formulario sin sesión.
         rol: 'ORANTE',
         esMenor,
-        apoderado: esMenor
+        apoderado: esMenor,
+        // Queda pendiente hasta que alguien con rol líder lo apruebe.
+        aprobado: false
       };
     }
 
@@ -81,8 +84,11 @@ async function completarAcceso(token, res) {
   if (!marcado.count) return res.status(400).json({ error: 'Este acceso ya se usó. Pide uno nuevo.' });
 
   let user = await prisma.user.findUnique({ where: { email: token.email } });
-  if (!user && token.registro) user = await crearUsuario({ email: token.email, ...token.registro });
-  if (!user) return res.status(400).json({ error: 'No encontramos tu cuenta. Regístrate con el código de invitación.' });
+  if (!user && token.registro) {
+    user = await crearUsuario({ email: token.email, ...token.registro });
+    if (!user.aprobadoAt) avisarNuevaSolicitud(user).catch((err) => console.error('[solicitud]', err.message));
+  }
+  if (!user) return res.status(400).json({ error: 'No encontramos tu cuenta. Para sumarte necesitas el enlace de invitación.' });
   ponerCookieSesion(res, user);
   res.json({ ok: true, user: usuarioPublico(user) });
 }

@@ -226,10 +226,10 @@ Desde el celular se necesita HTTPS, así que hay que probar con la app desplegad
 2. Toca **Connect** en el proyecto y copia:
    - **Transaction pooler** (puerto 6543) → `DATABASE_URL`, agregando `?pgbouncer=true` al final.
    - **Session pooler** o **Direct connection** (puerto 5432) → `DIRECT_URL`.
-3. Desde tu computador, con esas dos variables en `.env`:
+3. Pega esas dos URL en `.env.produccion` (archivo local, no se sube a GitHub; ahí también están los secretos ya generados) y corre desde tu computador:
    ```bash
-   npm run db:deploy
-   npm run crear-lider -- correo-de-la-lider@ejemplo.cl "Nombre"
+   npm run prod:migrar
+   npm run prod:crear-lider -- correo-de-caro@ejemplo.cl "Caro"
    ```
    El segundo comando muestra el enlace de invitación (también está en la pantalla «Grupo»).
 

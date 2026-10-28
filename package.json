@@ -20,7 +20,9 @@
     "test:avisos": "node --test --test-concurrency=1 scripts/test-avisos.js",
     "iconos": "node scripts/generar-iconos.js",
     "generar-vapid": "node scripts/generar-vapid.js",
-    "cron:local": "node scripts/cron-local.js"
+    "cron:local": "node scripts/cron-local.js",
+    "prod:migrar": "node --env-file=.env.produccion node_modules/prisma/build/index.js migrate deploy",
+    "prod:crear-lider": "node --env-file=.env.produccion scripts/crear-lider.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

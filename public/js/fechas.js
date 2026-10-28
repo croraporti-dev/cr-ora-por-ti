@@ -27,19 +27,40 @@ export function grupo(iso, ahora = new Date()) {
   return 'despues';
 }
 
-const fmtDia = new Intl.DateTimeFormat('es-CL', { timeZone: ZONA, weekday: 'long', day: 'numeric', month: 'long' });
+const DIAS = ['lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado', 'domingo'];
 
-// "hoy a las 10:00" | "mañana a las 08:30" | "jueves 6 de noviembre, 10:00"
+// 'YYYY-MM-DD' → 'dd/mm/aaaa'
+export function aDMA(fechaIso) {
+  const [a, m, d] = fechaIso.split('-');
+  return `${d}/${m}/${a}`;
+}
+
+// 'dd/mm/aaaa' → 'YYYY-MM-DD', o null si no es una fecha real.
+export function desdeDMA(texto) {
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(String(texto || '').trim());
+  if (!m) return null;
+  const [, d, mes, a] = m;
+  const f = new Date(Date.UTC(+a, +mes - 1, +d));
+  if (f.getUTCFullYear() !== +a || f.getUTCMonth() !== +mes - 1 || f.getUTCDate() !== +d) return null;
+  return `${a}-${mes}-${d}`;
+}
+
+// "hoy a las 10:00" | "mañana a las 08:30" | "jueves 06/11/2026, 10:00" (siempre 24 h)
 export function cuando(iso, ahora = new Date()) {
-  const { hora } = partesChile(iso);
+  const { fecha, hora, diaSemana } = partesChile(iso);
   const g = grupo(iso, ahora);
   if (g === 'hoy') return `hoy a las ${hora}`;
   if (g === 'manana') return `mañana a las ${hora}`;
-  return `${fmtDia.format(new Date(iso))}, ${hora}`;
+  return `${DIAS[diaSemana - 1]} ${aDMA(fecha)}, ${hora}`;
 }
 
 export function hoyChile() {
   return partesChile(new Date()).fecha;
+}
+
+// Fecha de Chile dentro de `dias` días, en 'YYYY-MM-DD'.
+export function fechaChileEn(dias) {
+  return partesChile(new Date(Date.now() + dias * 86400000)).fecha;
 }
 
 export function yaPaso(iso) {

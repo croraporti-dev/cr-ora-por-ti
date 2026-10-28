@@ -2,7 +2,7 @@
 import { api } from '../api.js';
 import { pintar, esc, conCarga, avisar } from '../ui.js';
 import { TIPOS, ANIMOS, queTiene } from '../textos.js';
-import { partesChile, cuando, hoyChile, yaPaso } from '../fechas.js';
+import { partesChile, cuando, hoyChile, fechaChileEn, aDMA, desdeDMA, yaPaso } from '../fechas.js';
 import { montarTarjetaAvisos } from './avisos.js';
 
 export function vistaBienvenida() {
@@ -38,6 +38,22 @@ function formularioPerfil() {
     </form>`;
 }
 
+const dos = (n) => String(n).padStart(2, '0');
+
+// Hora en 24 h con dos listas (los selectores nativos muestran AM/PM según el celular).
+function camposHora(hora) {
+  const [h, m] = (hora || '08:00').split(':');
+  const minutos = Array.from({ length: 12 }, (_, i) => dos(i * 5));
+  if (!minutos.includes(m)) minutos.push(m);
+  minutos.sort();
+  return `
+    <div class="hora-24">
+      <select name="horaH" aria-label="Hora">${Array.from({ length: 24 }, (_, i) => dos(i)).map((x) => `<option ${x === h ? 'selected' : ''}>${x}</option>`).join('')}</select>
+      <span>:</span>
+      <select name="horaM" aria-label="Minutos">${minutos.map((x) => `<option ${x === m ? 'selected' : ''}>${x}</option>`).join('')}</select>
+    </div>`;
+}
+
 function formularioEvaluacion(e) {
   const p = e ? partesChile(e.fechaHora) : { fecha: '', hora: '' };
   const tipo = e?.tipo || 'PRUEBA';
@@ -50,11 +66,17 @@ function formularioEvaluacion(e) {
       </div>
       <label class="campo"><span>Ramo</span><input type="text" name="ramo" maxlength="60" placeholder="Ej: Matemáticas" value="${esc(e?.ramo || '')}" required></label>
       <div class="fila">
-        <label class="campo"><span>Fecha</span><input type="date" name="fecha" min="${hoyChile()}" value="${p.fecha}" required></label>
-        <label class="campo"><span>Hora</span><input type="time" name="hora" value="${p.hora || '08:00'}" required></label>
+        <label class="campo"><span>Fecha</span>
+          <input type="text" name="fecha" inputmode="numeric" placeholder="dd/mm/aaaa" maxlength="10" autocomplete="off" value="${p.fecha ? aDMA(p.fecha) : ''}" required>
+        </label>
+        <div class="campo"><span>Hora (24 h)</span>${camposHora(p.hora)}</div>
+      </div>
+      <div class="atajos">
+        <button type="button" class="btn texto" data-fecha="${aDMA(hoyChile())}">Hoy</button>
+        <button type="button" class="btn texto" data-fecha="${aDMA(fechaChileEn(1))}">Mañana</button>
       </div>
       <p class="error" hidden></p>
-      <button class="btn bloque">${e ? 'Guardar cambios' : 'Anotar'}</button>
+      <button type="submit" class="btn bloque">${e ? 'Guardar cambios' : 'Anotar'}</button>
       ${e ? '<button type="button" class="btn texto bloque" data-accion="cancelar">Cancelar</button>' : ''}
     </form>`;
 }
@@ -144,11 +166,25 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
 
   function conectarFormulario() {
     const f = cajaForm.querySelector('#f-eval');
+    // Escribe las barras solas: "02112026" → "02/11/2026".
+    f.fecha.addEventListener('input', () => {
+      const d = f.fecha.value.replace(/\D/g, '').slice(0, 8);
+      f.fecha.value = [d.slice(0, 2), d.slice(2, 4), d.slice(4)].filter(Boolean).join('/');
+    });
+    f.querySelectorAll('[data-fecha]').forEach((b) => b.addEventListener('click', () => { f.fecha.value = b.dataset.fecha; }));
+
     f.addEventListener('submit', (ev) => {
       ev.preventDefault();
       const id = f.dataset.id;
-      const datos = { tipo: f.tipo.value, ramo: f.ramo.value, fecha: f.fecha.value, hora: f.hora.value };
-      conCarga(f.querySelector('button'), f.querySelector('.error'), async () => {
+      const cajaError = f.querySelector('.error');
+      const fecha = desdeDMA(f.fecha.value);
+      if (!fecha) {
+        cajaError.textContent = 'Escribe la fecha como dd/mm/aaaa (por ejemplo 05/11/2026).';
+        cajaError.hidden = false;
+        return;
+      }
+      const datos = { tipo: f.tipo.value, ramo: f.ramo.value, fecha, hora: `${f.horaH.value}:${f.horaM.value}` };
+      conCarga(f.querySelector('button[type=submit]'), cajaError, async () => {
         await api(id ? `/joven/evaluaciones/${id}` : '/joven/evaluaciones', { metodo: id ? 'PUT' : 'POST', datos });
         avisar(id ? 'Cambios guardados' : 'Anotada. Oraremos por ti.');
         vistaMis();

@@ -1,12 +1,13 @@
 // Simula el cron en tu computador: llama a /api/cron/enviar-avisos cada minuto.
 // Uso: npm run cron:local   (con `npm run dev` corriendo en otra terminal)
+const { DateTime } = require('luxon');
 const config = require('../src/config');
 
 const URL = `http://localhost:${config.puerto}/api/cron/enviar-avisos`;
 const CADA_MS = 60 * 1000;
 
 async function llamar() {
-  const hora = new Date().toLocaleTimeString('es-CL', { timeZone: config.zona });
+  const hora = DateTime.now().setZone(config.zona).toFormat('HH:mm:ss');
   try {
     const res = await fetch(URL, { method: 'POST', headers: { 'x-cron-secret': config.cronSecret } });
     const r = await res.json();

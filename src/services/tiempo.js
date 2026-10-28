@@ -24,7 +24,7 @@ function horaCorta(date) {
   return aLocal(date).toFormat('HH:mm');
 }
 
-// "hoy", "mañana" o "el martes 4 de noviembre"
+// "hoy", "mañana" o "el martes 04/11/2026"
 function diaRelativo(date, ahora = new Date()) {
   const d = aLocal(date).startOf('day');
   const hoy = aLocal(ahora).startOf('day');
@@ -32,7 +32,7 @@ function diaRelativo(date, ahora = new Date()) {
   if (dias === 0) return 'hoy';
   if (dias === 1) return 'mañana';
   if (dias === -1) return 'ayer';
-  return `el ${d.setLocale('es-CL').toFormat("cccc d 'de' LLLL")}`;
+  return `el ${d.setLocale('es-CL').toFormat('cccc dd/MM/yyyy')}`;
 }
 
 module.exports = { ZONA, desdeLocal, aLocal, ahoraLocal, horaCorta, diaRelativo };

@@ -2,11 +2,12 @@
 // y lo agrega a correos-locales.txt (por si la terminal se limpia o se pierde de vista).
 const fs = require('fs');
 const path = require('path');
+const { DateTime } = require('luxon');
 
 const ARCHIVO = path.join(__dirname, '..', '..', '..', 'correos-locales.txt');
 
 async function enviar({ to, subject, text }) {
-  const hora = new Date().toLocaleString('es-CL', { timeZone: 'America/Santiago' });
+  const hora = DateTime.now().setZone('America/Santiago').toFormat('dd/MM/yyyy HH:mm');
   const bloque = `\nCorreo para ${to} (${hora})\n   Asunto: ${subject}\n${text.split('\n').map((l) => '   ' + l).join('\n')}\n`;
   console.log(bloque);
   try {

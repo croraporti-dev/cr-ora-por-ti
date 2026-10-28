@@ -30,18 +30,16 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// POST /api/joven/perfil — { nombre, apellido, telefono, aceptaAviso, esMenor, apoderado }
+// POST /api/joven/perfil — { nombre, apellido, telefono, aceptaAviso }
 router.post('/perfil', limitarPorIp('joven-perfil', 100, 60 * 60), async (req, res, next) => {
   try {
     const nombre = v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 });
     const apellido = v.texto(req.body.apellido, { nombre: 'tu apellido', min: 2, max: 40 });
     const telefono = v.telefono(req.body.telefono);
-    const esMenor = req.body.esMenor === true;
     if (req.body.aceptaAviso !== true) throw new v.ErrorValidacion('Para seguir necesitas aceptar el aviso.');
-    if (esMenor && req.body.apoderado !== true) throw new v.ErrorValidacion('Si eres menor de edad, tu apoderado debe estar en conocimiento.');
 
     const ahora = new Date();
-    const consentimiento = { esMenor, aceptoAvisoAt: ahora, apoderadoAt: esMenor ? ahora : null };
+    const consentimiento = { aceptoAvisoAt: ahora };
     const existente = await prisma.user.findUnique({ where: { telefono } });
     if (existente && existente.rol !== 'JOVEN') {
       throw new v.ErrorValidacion('Ese número ya está registrado en el grupo como orante. Usa otro número.');

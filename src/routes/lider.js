@@ -78,7 +78,7 @@ router.get('/miembros', async (req, res, next) => {
     const miembros = await prisma.user.findMany({
       orderBy: [{ rol: 'asc' }, { nombre: 'asc' }],
       select: {
-        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, esMenor: true, createdAt: true, aprobadoAt: true,
+        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, createdAt: true, aprobadoAt: true,
         _count: { select: { evaluaciones: true, pushSubs: { where: { activa: true } } } }
       }
     });

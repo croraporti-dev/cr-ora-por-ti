@@ -1,6 +1,6 @@
 // Panel de administración (rol líder): resumen de la semana, código de invitación y miembros.
 import { api } from '../api.js';
-import { pintar, esc, conCarga, avisar } from '../ui.js';
+import { pintar, esc, conCarga, avisar, confirmar } from '../ui.js';
 
 function cifra(valor, texto, detalle = '') {
   return `<div class="cifra"><strong>${valor}</strong><span>${esc(texto)}</span>${detalle ? `<small>${esc(detalle)}</small>` : ''}</div>`;
@@ -32,7 +32,7 @@ function filaMiembro(m, yo) {
   if (m.pendiente) {
     return `
     <li class="miembro" data-id="${esc(m.id)}">
-      <div class="miembro-datos"><strong>${nombre}</strong><span class="chico">${esc(m.email || '')}${m.esMenor ? ' · menor de edad' : ''}</span></div>
+      <div class="miembro-datos"><strong>${nombre}</strong><span class="chico">${esc(m.email || '')}</span></div>
       <div class="miembro-acciones">
         <button class="btn secundario chico-btn" data-accion="aprobar">Aprobar</button>
         <button class="btn texto peligro-texto" data-accion="rechazar">Rechazar</button>
@@ -41,7 +41,7 @@ function filaMiembro(m, yo) {
   }
   if (m.rol === 'JOVEN') {
     const numero = (m.telefono || '').replace('+', '');
-    detalle = `${esc(m.telefono || '')}${m.esMenor ? ' · menor de edad' : ''} · ${m.evaluaciones} ${m.evaluaciones === 1 ? 'evaluación' : 'evaluaciones'}`;
+    detalle = `${esc(m.telefono || '')} · ${m.evaluaciones} ${m.evaluaciones === 1 ? 'evaluación' : 'evaluaciones'}`;
     acciones = numero ? `<a class="btn texto" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener">WhatsApp</a>` : '';
   } else {
     detalle = `${esc(m.email || '')} · avisos ${m.avisosActivos ? 'activos' : 'por correo'}`;
@@ -133,9 +133,10 @@ export async function vistaLider() {
       avisar('No se pudo copiar; mantén presionado el enlace para copiarlo.');
     }
   });
-  vista.querySelector('#nuevo').addEventListener('click', (e) => {
-    if (!confirm('¿Generar un enlace nuevo? El actual dejará de servir para registrarse. Úsalo si el enlace se compartió con quien no debía.')) return;
-    conCarga(e.currentTarget, null, async () => {
+  vista.querySelector('#nuevo').addEventListener('click', async (e) => {
+    const boton = e.currentTarget;
+    if (!(await confirmar('El enlace actual dejará de servir para registrarse. Úsalo si se compartió con quien no debía.', { titulo: '¿Generar un enlace nuevo?', aceptar: 'Generar' }))) return;
+    conCarga(boton, null, async () => {
       mostrarEnlace((await api('/lider/invitacion', { metodo: 'POST' })).enlace);
       avisar('Listo, hay un enlace nuevo');
     });
@@ -174,10 +175,10 @@ export async function vistaLider() {
     }
 
     if (accion !== 'quitar' && accion !== 'rechazar') return;
-    const pregunta = accion === 'rechazar'
-      ? `¿Rechazar la solicitud de ${m.nombre}? No podrá ver la agenda.`
-      : `¿Quitar a ${m.nombre} del grupo? Se borrarán sus datos${m.rol === 'JOVEN' ? ' y todas sus evaluaciones' : ''}. No se puede deshacer.`;
-    if (!confirm(pregunta)) return;
+    const seguro = accion === 'rechazar'
+      ? await confirmar(`${m.nombre} no podrá ver la agenda ni recibir avisos.`, { titulo: '¿Rechazar solicitud?', aceptar: 'Rechazar', peligro: true })
+      : await confirmar(`Se borrarán sus datos${m.rol === 'JOVEN' ? ' y todas sus evaluaciones' : ''}. No se puede deshacer.`, { titulo: `¿Quitar a ${m.nombre}?`, aceptar: 'Quitar', peligro: true });
+    if (!seguro) return;
     await conCarga(boton, null, async () => {
       await api(`/lider/miembros/${m.id}`, { metodo: 'DELETE' });
       avisar(accion === 'rechazar' ? 'Solicitud rechazada' : `${m.nombre} ya no está en el grupo`);

@@ -207,4 +207,19 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .pasos li { display: flex; gap: 12px; align-items: center; }
 .pasos li > :first-child { flex-shrink: 0; }
 
+/* Diálogo de confirmación */
+.dialogo {
+  border: none; border-radius: 16px; padding: 22px 20px 18px;
+  width: min(92vw, 380px); margin: auto;
+  background: var(--surface); color: var(--text-main);
+  box-shadow: 0 20px 40px -12px rgb(15 23 42 / 0.35);
+}
+.dialogo::backdrop { background: rgb(15 23 42 / 0.45); }
+.dialogo h2 { margin: 0 0 8px; font-size: 1.1rem; }
+.dialogo p { color: var(--text-muted); margin-bottom: 20px; }
+.dialogo-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dialogo-botones .btn { min-height: 48px; }
+.btn.peligro-solido { background: var(--danger); color: #fff; }
+.btn.peligro-solido:hover { background: #b91c1c; }
+
 [hidden] { display: none !important; }

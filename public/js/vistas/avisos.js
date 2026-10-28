@@ -1,6 +1,6 @@
 // Tarjeta "Avisos en este dispositivo": estado, activar, notificación de prueba y guía para iPhone.
 import { api } from '../api.js';
-import { esc, conCarga, avisar } from '../ui.js';
+import { esc, conCarga, avisar, confirmar } from '../ui.js';
 import * as push from '../push.js';
 
 // Ilustraciones simples para la guía de iPhone.
@@ -108,7 +108,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
         avisar('Enviada. Debería llegarte en unos segundos.');
       });
     } else if (accion === 'desactivar') {
-      if (!confirm('¿Desactivar los avisos en este dispositivo?')) return;
+      if (!(await confirmar('Dejarán de llegarte notificaciones en este dispositivo. Te avisaremos por correo.', { titulo: '¿Desactivar avisos?', aceptar: 'Desactivar' }))) return;
       await push.desactivar();
       await pintar();
     } else if (accion === 'reintentar') {

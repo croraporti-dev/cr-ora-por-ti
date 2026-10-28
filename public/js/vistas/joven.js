@@ -1,6 +1,6 @@
 // Vista del joven: sin inicio de sesión. Primero sus datos, luego sus evaluaciones.
 import { api } from '../api.js';
-import { pintar, esc, conCarga, avisar } from '../ui.js';
+import { pintar, esc, conCarga, avisar, confirmar } from '../ui.js';
 import { TIPOS, ANIMOS, queTiene } from '../textos.js';
 import { partesChile, cuando, hoyChile, fechaChileEn, aDMA, desdeDMA, yaPaso } from '../fechas.js';
 import { montarTarjetaAvisos } from './avisos.js';
@@ -31,8 +31,6 @@ function formularioPerfil() {
       <label class="campo"><span>Celular</span><input type="text" name="telefono" inputmode="tel" autocomplete="tel" placeholder="9 1234 5678" required></label>
       <div class="aviso-privacidad">${AVISO}</div>
       <label class="check"><input type="checkbox" name="aceptaAviso"><span>Leí y acepto el aviso.</span></label>
-      <label class="check"><input type="checkbox" name="esMenor"><span>Soy menor de 18 años.</span></label>
-      <label class="check" id="c-apoderado" hidden><input type="checkbox" name="apoderado"><span>Mi apoderado está en conocimiento de que uso esta app.</span></label>
       <p class="error" hidden></p>
       <button class="btn bloque">Continuar</button>
     </form>`;
@@ -123,7 +121,6 @@ export async function vistaMis() {
 function mostrarPerfil(vista) {
   vista.innerHTML = formularioPerfil();
   const f = vista.querySelector('#f-perfil');
-  f.esMenor.addEventListener('change', () => { vista.querySelector('#c-apoderado').hidden = !f.esMenor.checked; });
   f.addEventListener('submit', (e) => {
     e.preventDefault();
     conCarga(f.querySelector('button'), f.querySelector('.error'), async () => {
@@ -131,7 +128,7 @@ function mostrarPerfil(vista) {
         metodo: 'POST',
         datos: {
           nombre: f.nombre.value, apellido: f.apellido.value, telefono: f.telefono.value,
-          aceptaAviso: f.aceptaAviso.checked, esMenor: f.esMenor.checked, apoderado: f.apoderado.checked
+          aceptaAviso: f.aceptaAviso.checked
         }
       });
       vistaMis();
@@ -214,7 +211,7 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
       conectarFormulario();
       cajaForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (boton.dataset.accion === 'borrar') {
-      if (!confirm(`¿Borrar tu ${queTiene(e)}?`)) return;
+      if (!(await confirmar(`Se borrará tu ${queTiene(e)} y dejará de aparecer para el grupo.`, { titulo: '¿Borrar evaluación?', aceptar: 'Borrar', peligro: true }))) return;
       await conCarga(boton, null, async () => {
         await api(`/joven/evaluaciones/${e.id}`, { metodo: 'DELETE' });
         avisar('Evaluación borrada');

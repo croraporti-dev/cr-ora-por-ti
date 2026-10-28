@@ -34,19 +34,13 @@ router.post('/solicitar', limitarPorIp('auth-solicitar', 40, 15 * 60), async (re
       if (!(await esCodigoValido(req.body.invitacion))) {
         return res.status(400).json({ error: 'Este enlace de invitación ya no es válido. Pide uno nuevo a quien te invitó a orar.' });
       }
-      const esMenor = req.body.esMenor === true;
       if (req.body.aceptaAviso !== true) {
         return res.status(400).json({ error: 'Para registrarte necesitas aceptar el aviso de privacidad.' });
-      }
-      if (esMenor && req.body.apoderado !== true) {
-        return res.status(400).json({ error: 'Si eres menor de edad, tu apoderado debe estar en conocimiento.' });
       }
       registro = {
         nombre: v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 }),
         // Con correo solo se registran orantes; los jóvenes usan el formulario sin sesión.
         rol: 'ORANTE',
-        esMenor,
-        apoderado: esMenor,
         // Queda pendiente hasta que alguien con rol líder lo apruebe.
         aprobado: false
       };

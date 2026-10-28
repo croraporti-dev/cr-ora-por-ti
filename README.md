@@ -69,7 +69,7 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 ## Acceso y roles
 
 **Jóvenes (`JOVEN`): sin cuenta ni inicio de sesión.**
-- Abren la app, tocan "Anotar mi prueba" y la primera vez escriben nombre, apellido y celular, aceptan el aviso de privacidad y, si son menores, marcan que su apoderado está en conocimiento.
+- Abren la app, tocan "Anotar mi prueba" y la primera vez escriben nombre, apellido y celular, y aceptan el aviso de privacidad.
 - Su dispositivo queda recordado con una cookie httpOnly de 1 año, así que las siguientes veces solo anotan la evaluación.
 - Solo ven y modifican **sus propias** evaluaciones. No ven la agenda general, por lo que un desconocido que abra el formulario no ve datos de nadie.
 - Mismo número de celular = mismo joven. Si cambia de teléfono, escribe su número otra vez y recupera sus evaluaciones.
@@ -105,7 +105,7 @@ Menú «Grupo» (solo rol LIDER):
 - **Solicitudes para orar:** aprobar o rechazar a quienes se registraron con el enlace.
 - **Invitar a orar:** enlace para compartir por WhatsApp o copiar, y botón para generar uno nuevo (el anterior deja de servir).
 - **Miembros**, agrupados en líderes, orantes y jóvenes:
-  - Jóvenes: celular, si es menor de edad y cuántas evaluaciones tiene, con un enlace a WhatsApp para escribirle fuera de la app.
+  - Jóvenes: celular y cuántas evaluaciones tiene, con un enlace a WhatsApp para escribirle fuera de la app.
   - Orantes: correo y si tiene avisos activos o los recibe por correo.
   - Cambiar el rol entre Orante y Líder. Siempre debe quedar al menos una persona con rol de líder. Los jóvenes no cambian de rol.
   - Quitar a alguien borra sus datos, incluidas sus evaluaciones. Nadie puede quitar su propia cuenta.

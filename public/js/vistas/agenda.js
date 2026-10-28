@@ -1,6 +1,6 @@
 // Agenda de oración (orantes y líder).
 import { api } from '../api.js';
-import { pintar, esc, avisar } from '../ui.js';
+import { pintar, esc, avisar, confirmar } from '../ui.js';
 import { TIPOS, ANIMOS } from '../textos.js';
 import { grupo, partesChile, cuando } from '../fechas.js';
 
@@ -93,7 +93,7 @@ export async function vistaAgenda({ user, params, avisos }) {
         repintar(e);
         if (r.yoOre) avisar('Gracias por orar');
       } else if (boton.dataset.accion === 'quitar') {
-        if (!confirm(`¿Quitar la evaluación de ${e.joven.nombre}? Úsalo para entradas falsas o repetidas.`)) return;
+        if (!(await confirmar(`Se quitará de la agenda la evaluación de ${e.joven.nombre}. Úsalo para entradas falsas o repetidas.`, { titulo: '¿Quitar evaluación?', aceptar: 'Quitar', peligro: true }))) return;
         await api(`/lider/evaluaciones/${e.id}`, { metodo: 'DELETE' });
         lista.querySelector(`#ev-${CSS.escape(e.id)}`)?.remove();
         avisar('Evaluación quitada');

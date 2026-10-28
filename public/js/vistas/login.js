@@ -1,7 +1,7 @@
 import { api, memoria } from '../api.js';
 import { pintar, conCarga, esc } from '../ui.js';
 
-const AVISO_PRIVACIDAD = `Verás los nombres y las fechas de evaluación de los jóvenes, y algunos son menores de edad.
+const AVISO_PRIVACIDAD = `Verás los nombres y las fechas de evaluación de los jóvenes.
 Úsalo solo para orar por ellos y <strong>no compartas esta información</strong> fuera del grupo.`;
 
 // El enlace de invitación (#/unirse?i=...) se recuerda mientras la persona cambia de pestaña.
@@ -36,8 +36,6 @@ export function vistaLogin({ irA, params, pestana = 'entrar' }) {
         <input type="email" name="email" autocomplete="email" inputmode="email" required></label>
       <div class="aviso-privacidad">${AVISO_PRIVACIDAD}</div>
       <label class="check"><input type="checkbox" name="aceptaAviso"><span>Me comprometo a cuidar esta información.</span></label>
-      <label class="check"><input type="checkbox" name="esMenor"><span>Soy menor de 18 años.</span></label>
-      <label class="check" id="c-apoderado" hidden><input type="checkbox" name="apoderado"><span>Mi apoderado está en conocimiento de que uso esta app.</span></label>
       <p class="error" hidden></p>
       <button class="btn bloque">Sumarme al grupo de oración</button>
     </form>
@@ -48,9 +46,6 @@ export function vistaLogin({ irA, params, pestana = 'entrar' }) {
   );
 
   const fRegistro = vista.querySelector('#f-registro');
-  fRegistro.esMenor.addEventListener('change', () => {
-    vista.querySelector('#c-apoderado').hidden = !fRegistro.esMenor.checked;
-  });
 
   async function solicitar(form, datos) {
     await conCarga(form.querySelector('button'), form.querySelector('.error'), async () => {
@@ -74,9 +69,7 @@ export function vistaLogin({ irA, params, pestana = 'entrar' }) {
       invitacion,
       nombre: f.nombre.value,
       email: f.email.value.trim(),
-      aceptaAviso: f.aceptaAviso.checked,
-      esMenor: f.esMenor.checked,
-      apoderado: f.apoderado.checked
+      aceptaAviso: f.aceptaAviso.checked
     });
   });
 }

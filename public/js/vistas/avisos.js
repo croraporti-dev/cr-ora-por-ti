@@ -11,7 +11,7 @@ const ICONO_APP = `<img src="/icons/apple-touch-icon.png" width="44" height="44"
 function guiaIphone(iosViejo) {
   return `
     <div class="tarjeta guia">
-      <h2 style="margin-top:0">📱 Activa los avisos en tu iPhone</h2>
+      <h2 style="margin-top:0">Activa los avisos en tu iPhone</h2>
       <p class="chico" style="margin-bottom:14px">En iPhone los avisos solo funcionan si agregas la app a tu pantalla de inicio. Es una sola vez:</p>
       ${iosViejo ? '<p class="error">Tu iPhone necesita iOS 16.4 o superior. Actualízalo en Ajustes › General › Actualización de software.</p>' : ''}
       <ol class="pasos">
@@ -27,7 +27,7 @@ function bloqueado(e) {
   const como = e.ios
     ? 'Abre <strong>Ajustes › Notificaciones › CR ora</strong> y activa «Permitir notificaciones».'
     : 'Toca el candado (o ⋮ › Información del sitio) junto a la dirección, entra a <strong>Notificaciones</strong> y elige «Permitir». Luego vuelve aquí.';
-  return `<div class="tarjeta"><h2 style="margin-top:0">🔕 Los avisos están bloqueados</h2><p>${como}</p>
+  return `<div class="tarjeta"><h2 style="margin-top:0">Los avisos están bloqueados</h2><p>${como}</p>
     <button class="btn secundario bloque" data-accion="reintentar" style="margin-top:12px">Ya los permití</button></div>`;
 }
 
@@ -42,7 +42,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
     if (e.ios && !e.instalada) return (contenedor.innerHTML = guiaIphone(e.iosViejo));
     if (e.iosViejo) return (contenedor.innerHTML = guiaIphone(true));
     if (!e.soporte) {
-      contenedor.innerHTML = `<div class="tarjeta"><p>🔕 Este navegador no permite avisos. En Android ábrela en <strong>Chrome</strong>; en iPhone, en <strong>Safari</strong>.${modo === 'orante' ? ' Mientras tanto te avisamos por correo.' : ''}</p></div>`;
+      contenedor.innerHTML = `<div class="tarjeta"><p>Este navegador no permite avisos. En Android ábrela en <strong>Chrome</strong>; en iPhone, en <strong>Safari</strong>.${modo === 'orante' ? ' Mientras tanto te avisamos por correo.' : ''}</p></div>`;
       return;
     }
     if (push.entorno().permiso === 'denied') return (contenedor.innerHTML = bloqueado(e));
@@ -58,13 +58,13 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
     }
     const activo = !!(sub && srv.esteDispositivo?.activa && push.entorno().permiso === 'granted');
     const instalar = e.android && !e.instalada && push.puedeInstalar()
-      ? '<button class="btn texto bloque" data-accion="instalar">📲 Instalar la app en este celular</button>'
+      ? '<button class="btn texto bloque" data-accion="instalar">Instalar la app en este celular</button>'
       : '';
 
     if (activo) {
       contenedor.innerHTML = `
         <div class="tarjeta estado-push bien ${resaltar ? 'resaltada' : ''}">
-          <p style="margin-bottom:12px">✅ Avisos en este celular: <strong>activos</strong></p>
+          <p style="margin-bottom:12px">Avisos en este celular: <strong>activos</strong></p>
           <button class="btn bloque" data-accion="prueba">Enviar notificación de prueba</button>
           <button class="btn texto bloque" data-accion="desactivar">Desactivar en este celular</button>
           ${instalar}
@@ -76,11 +76,11 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
     contenedor.innerHTML = `
       <div class="tarjeta ${fallaron ? 'estado-push mal' : ''} ${resaltar ? 'resaltada' : ''}">
         <p style="margin-bottom:12px">${fallaron
-          ? '⚠️ <strong>Tus avisos dejaron de funcionar.</strong> Vuelve a activarlos en este celular.'
-          : `🔕 Avisos en este celular: <strong>no activos</strong>.<br><span class="chico">${esc(intro)}</span>`}</p>
+          ? '<strong>Tus avisos dejaron de funcionar.</strong> Vuelve a activarlos en este celular.'
+          : `Avisos en este celular: <strong>no activos</strong>.<br><span class="chico">${esc(intro)}</span>`}</p>
         ${srv.disponible === false ? '<p class="error">El servidor aún no tiene configuradas las claves de avisos.</p>' : ''}
         <p class="error error-accion" hidden></p>
-        <button class="btn bloque" data-accion="activar">🔔 Activar avisos en este celular</button>
+        <button class="btn bloque" data-accion="activar">Activar avisos en este celular</button>
         ${instalar}
       </div>`;
   }
@@ -95,7 +95,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
       await conCarga(boton, cajaError, async () => {
         try {
           await push.activar();
-          avisar('¡Listo! Avisos activados 🔔');
+          avisar('Listo, avisos activados en este celular');
         } catch (err) {
           if (err.bloqueado) return pintar();
           throw err;

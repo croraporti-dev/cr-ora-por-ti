@@ -32,7 +32,7 @@ const insignia = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
 
 async function png(contenido, nombre, tamano) {
   await sharp(Buffer.from(contenido)).resize(tamano, tamano).png().toFile(path.join(destino, nombre));
-  console.log(`✔ ${nombre}`);
+  console.log(`Creado ${nombre}`);
 }
 
 (async () => {

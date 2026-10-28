@@ -47,7 +47,7 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// POST /api/agenda/:id/ore — "Ya oré 🙏" (repetirlo no suma dos veces)
+// POST /api/agenda/:id/ore — "Ya oré" (repetirlo no suma dos veces)
 router.post('/:id/ore', async (req, res, next) => {
   try {
     const existe = await prisma.evaluation.findUnique({ where: { id: req.params.id }, select: { id: true } });

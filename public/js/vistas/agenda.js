@@ -16,19 +16,19 @@ function tarjeta(e, user) {
   const pasada = grupo(e.fechaHora) === 'pasadas' || new Date(e.fechaHora) < new Date();
   const hora = ['hoy', 'manana'].includes(grupo(e.fechaHora)) ? partesChile(e.fechaHora).hora : cuando(e.fechaHora);
   const animo = e.resultadoAnimo
-    ? `<span class="etiqueta ${e.resultadoAnimo === 'NECESITA_ORACION' ? 'urgente' : ''}">${ANIMOS[e.resultadoAnimo].emoji} ${ANIMOS[e.resultadoAnimo].texto}</span>`
+    ? `<span class="etiqueta ${e.resultadoAnimo === 'NECESITA_ORACION' ? 'urgente' : ''}">${ANIMOS[e.resultadoAnimo].etiqueta}</span>`
     : '';
   return `
     <article class="tarjeta evaluacion" id="ev-${esc(e.id)}" data-id="${esc(e.id)}">
       <div class="ev-cabecera">
         <strong class="ev-nombre">${esc(e.joven.nombre)}</strong>
-        <button class="estrella" data-accion="seguir" aria-pressed="${e.sigo}" title="${e.sigo ? 'Dejar de seguir' : 'Seguir'}">${e.sigo ? '★' : '☆'}</button>
+        <button class="seguir ${e.sigo ? 'activo' : ''}" data-accion="seguir" aria-pressed="${e.sigo}">${e.sigo ? 'Siguiendo' : 'Seguir'}</button>
       </div>
-      <div class="ev-titulo">${TIPOS[e.tipo].emoji} ${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
+      <div class="ev-titulo">${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(hora)}${pasada && !e.resultadoAnimo ? ' · ya pasó' : ''}</div>
       <div class="ev-pie">
-        <span class="oraron" data-contador>${e.oraciones ? `🙏 ${e.oraciones} ${e.oraciones === 1 ? 'oró' : 'oraron'}` : 'Nadie ha orado aún'}</span>
-        <button class="btn ${e.yoOre ? 'secundario' : 'orar'}" data-accion="orar" aria-pressed="${e.yoOre}">${e.yoOre ? 'Oraste ✓' : 'Ya oré 🙏'}</button>
+        <span class="oraron" data-contador>${e.oraciones ? `${e.oraciones} ${e.oraciones === 1 ? 'persona oró' : 'personas oraron'}` : 'Nadie ha orado aún'}</span>
+        <button class="btn ${e.yoOre ? 'secundario' : 'orar'}" data-accion="orar" aria-pressed="${e.yoOre}">${e.yoOre ? 'Oraste' : 'Ya oré'}</button>
       </div>
       ${user.rol === 'LIDER' ? '<button class="btn texto peligro-texto chico" data-accion="quitar">Quitar evaluación</button>' : ''}
     </article>`;
@@ -38,10 +38,10 @@ function tarjeta(e, user) {
 function bannerAvisos(avisos) {
   if (!avisos) return '';
   if (avisos.necesitaReactivar) {
-    return `<a class="banner mal" href="#/ajustes?reactivar=1">⚠️ <span>Tus avisos dejaron de llegar al celular. <strong>Toca aquí para reactivarlos.</strong></span></a>`;
+    return `<a class="banner mal" href="#/ajustes?reactivar=1"><span>Tus avisos dejaron de llegar al celular. <strong>Toca aquí para reactivarlos.</strong></span></a>`;
   }
   if (avisos.quierePush && !avisos.pushActivas) {
-    return `<a class="banner" href="#/ajustes?reactivar=1">🔔 <span>Activa los avisos en tu celular para saber cuándo orar. <strong>Activar</strong></span></a>`;
+    return `<a class="banner" href="#/ajustes?reactivar=1"><span>Activa los avisos en tu celular para saber cuándo orar. <strong>Activar</strong></span></a>`;
   }
   return '';
 }
@@ -76,8 +76,8 @@ export async function vistaAgenda({ user, params, avisos }) {
 
   if (!evaluaciones.length) {
     lista.innerHTML = `<p class="vacio">${soloSeguidos
-      ? 'No hay evaluaciones de los jóvenes que sigues. Toca ☆ en una tarjeta para seguir a alguien.'
-      : 'Por ahora no hay evaluaciones anotadas. 🙌'}</p>`;
+      ? 'No hay evaluaciones de los jóvenes que sigues. Toca «Seguir» en una tarjeta para seguir a alguien.'
+      : 'Por ahora no hay evaluaciones anotadas.'}</p>`;
     return;
   }
 
@@ -107,7 +107,7 @@ export async function vistaAgenda({ user, params, avisos }) {
         const r = await api(`/agenda/${e.id}/ore`, { metodo: e.yoOre ? 'DELETE' : 'POST' });
         Object.assign(e, { yoOre: r.yoOre, oraciones: r.oraciones });
         repintar(e);
-        if (r.yoOre) avisar('Gracias por orar 🙏');
+        if (r.yoOre) avisar('Gracias por orar');
       } else if (boton.dataset.accion === 'seguir') {
         const r = await api(`/agenda/seguir/${e.joven.id}`, { metodo: e.sigo ? 'DELETE' : 'POST' });
         // Actualiza todas las tarjetas de ese joven.

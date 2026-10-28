@@ -22,19 +22,19 @@ async function main() {
       create: { userId: user.id, ...prefsPorDefecto('LIDER') },
       update: prefsPorDefecto('LIDER')
     });
-    console.log(`✔ ${nombre} (${email}) ahora es LÍDER.`);
+    console.log(`Listo: ${nombre} (${email}) ahora es LÍDER.`);
   } else {
     user = await crearUsuario({ email, nombre, rol: 'LIDER' });
-    console.log(`✔ Líder creada: ${nombre} (${email}).`);
+    console.log(`Listo: líder creada, ${nombre} (${email}).`);
   }
 
   const codigo = (await invitacion.codigoActivo()) || (await invitacion.regenerar(user.id));
-  console.log(`✔ Código de invitación vigente: ${codigo.code}`);
+  console.log(`Código de invitación vigente: ${codigo.code}`);
 }
 
 main()
   .catch((err) => {
-    console.error('✖', err.message);
+    console.error('Error:', err.message);
     process.exitCode = 1;
   })
   .finally(() => prisma.$disconnect());

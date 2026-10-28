@@ -7,9 +7,9 @@ import { montarTarjetaAvisos } from './avisos.js';
 
 export function vistaBienvenida() {
   pintar(`
-    <h1>Te acompañamos en oración 🙏</h1>
+    <h1>Te acompañamos en oración</h1>
     <p class="sub">Anota tus pruebas, exámenes y trabajos, y un grupo de la iglesia orará por ti ese día.</p>
-    <a class="btn bloque" href="#/mis">📚 Anotar mi prueba</a>
+    <a class="btn bloque" href="#/mis">Anotar mi prueba</a>
     <p class="chico" style="margin:10px 0 28px;text-align:center">No necesitas cuenta ni contraseña.</p>
     <div class="tarjeta">
       <p style="margin-bottom:12px"><strong>¿Quieres orar por los jóvenes?</strong></p>
@@ -46,7 +46,7 @@ function formularioEvaluacion(e) {
       <h2 style="margin-top:0">${e ? 'Editar evaluación' : 'Anotar una evaluación'}</h2>
       <div class="opciones cuatro">
         ${Object.entries(TIPOS).map(([k, t]) => `
-          <label class="opcion"><input type="radio" name="tipo" value="${k}" ${k === tipo ? 'checked' : ''}><span>${t.emoji} ${t.nombre}</span></label>`).join('')}
+          <label class="opcion"><input type="radio" name="tipo" value="${k}" ${k === tipo ? 'checked' : ''}><span>${t.nombre}</span></label>`).join('')}
       </div>
       <label class="campo"><span>Ramo</span><input type="text" name="ramo" maxlength="60" placeholder="Ej: Matemáticas" value="${esc(e?.ramo || '')}" required></label>
       <div class="fila">
@@ -54,7 +54,7 @@ function formularioEvaluacion(e) {
         <label class="campo"><span>Hora</span><input type="time" name="hora" value="${p.hora || '08:00'}" required></label>
       </div>
       <p class="error" hidden></p>
-      <button class="btn bloque">${e ? 'Guardar cambios' : 'Anotar 🙏'}</button>
+      <button class="btn bloque">${e ? 'Guardar cambios' : 'Anotar'}</button>
       ${e ? '<button type="button" class="btn texto bloque" data-accion="cancelar">Cancelar</button>' : ''}
     </form>`;
 }
@@ -64,17 +64,17 @@ function tarjetaAnimo(e) {
     <div class="tarjeta destacada" data-id="${esc(e.id)}">
       <p style="margin-bottom:12px"><strong>¿Cómo te fue en tu ${esc(queTiene(e))}?</strong></p>
       <div class="animos">
-        ${Object.entries(ANIMOS).map(([k, a]) => `<button class="btn secundario" data-animo="${k}">${a.emoji} ${a.texto}</button>`).join('')}
+        ${Object.entries(ANIMOS).map(([k, a]) => `<button class="btn secundario" data-animo="${k}">${a.texto}</button>`).join('')}
       </div>
     </div>`;
 }
 
 function tarjetaMia(e) {
-  const oraron = e.oraciones ? `<p class="oraron">🙏 ${e.oraciones === 1 ? '1 persona oró' : `${e.oraciones} personas oraron`} por ti</p>` : '';
-  const animo = e.resultadoAnimo ? `<span class="etiqueta">${ANIMOS[e.resultadoAnimo].emoji} ${ANIMOS[e.resultadoAnimo].texto}</span>` : '';
+  const oraron = e.oraciones ? `<p class="oraron">${e.oraciones === 1 ? '1 persona oró' : `${e.oraciones} personas oraron`} por ti</p>` : '';
+  const animo = e.resultadoAnimo ? `<span class="etiqueta">${ANIMOS[e.resultadoAnimo].texto}</span>` : '';
   return `
     <div class="tarjeta evaluacion" data-id="${esc(e.id)}">
-      <div class="ev-titulo">${TIPOS[e.tipo].emoji} ${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
+      <div class="ev-titulo">${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(cuando(e.fechaHora))}</div>
       ${oraron}
       ${yaPaso(e.fechaHora) ? '' : `
@@ -126,7 +126,7 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
   contenedor.innerHTML = '<div></div>';
   const vista = contenedor.firstElementChild;
   vista.innerHTML = `
-    <h1>Hola, ${esc(joven.nombre)} 👋</h1>
+    <h1>Hola, ${esc(joven.nombre)}</h1>
     <p class="sub">Anota tus pruebas y oraremos por ti ese día.</p>
     ${pendientesAnimo.map(tarjetaAnimo).join('')}
     <div id="caja-form">${formularioEvaluacion()}</div>
@@ -150,7 +150,7 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
       const datos = { tipo: f.tipo.value, ramo: f.ramo.value, fecha: f.fecha.value, hora: f.hora.value };
       conCarga(f.querySelector('button'), f.querySelector('.error'), async () => {
         await api(id ? `/joven/evaluaciones/${id}` : '/joven/evaluaciones', { metodo: id ? 'PUT' : 'POST', datos });
-        avisar(id ? 'Cambios guardados' : '¡Anotada! Oraremos por ti 🙏');
+        avisar(id ? 'Cambios guardados' : 'Anotada. Oraremos por ti.');
         vistaMis();
       });
     });
@@ -170,7 +170,7 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
     if (boton.dataset.animo) {
       await conCarga(boton, null, async () => {
         await api(`/joven/evaluaciones/${e.id}/animo`, { metodo: 'POST', datos: { animo: boton.dataset.animo } });
-        avisar('Gracias por contarnos 💙');
+        avisar('Gracias por contarnos');
         vistaMis();
       });
     } else if (boton.dataset.accion === 'editar') {

@@ -43,7 +43,8 @@ a { color: var(--primary); }
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
-.marca { font-weight: 700; font-size: 1.05rem; color: var(--primary); text-decoration: none; white-space: nowrap; }
+.marca { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; font-size: 1.05rem; color: var(--primary); text-decoration: none; white-space: nowrap; }
+.marca-icono { border-radius: 6px; flex-shrink: 0; }
 .nav { display: flex; gap: 4px; overflow-x: auto; }
 .nav a {
   padding: 6px 10px; border-radius: 999px; text-decoration: none;
@@ -142,7 +143,12 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .oraron { color: var(--text-muted); font-size: 0.9rem; }
 .btn.orar { background: var(--calido); color: #fff; }
 .btn.orar:hover { background: #d97706; }
-.estrella { border: none; background: none; font-size: 1.5rem; line-height: 1; color: var(--calido); cursor: pointer; padding: 4px 6px; }
+.seguir {
+  font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
+  padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text-muted);
+}
+.seguir.activo { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 .etiqueta {
   display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
   background: var(--success-light); color: var(--success); vertical-align: middle;

@@ -92,7 +92,7 @@ export async function vistaAjustes({ params }) {
     sincronizar();
     try {
       await api('/ajustes', { metodo: 'PUT', datos: prefsDesdeFormulario(f) });
-      avisar('Guardado ✓');
+      avisar('Guardado');
     } catch (err) {
       avisar(err.message);
     }

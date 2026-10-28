@@ -101,7 +101,7 @@ self.addEventListener('notificationclick', (event) => {
       })
         .then((r) => {
           if (!r.ok) throw new Error();
-          return self.registration.showNotification('¡Gracias por contarnos! 💙', {
+          return self.registration.showNotification('¡Gracias por contarnos!', {
             body: 'Seguimos orando por ti.',
             icon: '/icons/icon-192.png',
             badge: '/icons/badge-96.png',

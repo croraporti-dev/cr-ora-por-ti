@@ -30,6 +30,26 @@ MAIL_PROVIDER="consola"
 
 Con `MAIL_PROVIDER=consola`, los correos (incluido el código de 6 dígitos) se muestran en la terminal del servidor.
 
+### Prueba local completa (antes de desplegar)
+
+Usa tres terminales:
+
+| Terminal | Comando | Para qué |
+|---|---|---|
+| 1 | `npm run db:local` | Base de datos local |
+| 2 | `npm run dev` | La app en http://localhost:3000; aquí aparecen los correos y los códigos |
+| 3 | `npm run cron:local` | Envía los avisos pendientes cada minuto (simula GitHub Actions) |
+
+Recorrido sugerido, en **Chrome** de tu computador:
+1. **Líder:** `npm run crear-lider -- tu@correo.cl "Tu Nombre"`. Entra en http://localhost:3000 → «Entrar para orar», con el código de 6 dígitos que aparece en la terminal 2.
+2. **Avisos:** en Ajustes toca «Activar avisos en este celular», acepta el permiso y toca «Enviar notificación de prueba». La notificación debe llegar aunque minimices Chrome.
+3. **Joven:** abre una ventana de incógnito (así tiene otra sesión), toca «Anotar mi prueba», completa tus datos y anota una evaluación para hoy, unos 50 minutos más tarde.
+4. En el siguiente minuto, la terminal 3 muestra `push enviados: 1` y te llega «Ora por …». Al tocarla se abre esa tarjeta en la agenda.
+5. **Respaldo por correo:** en Ajustes toca «Desactivar en este celular» y anota otra evaluación. Ahora el aviso sale por correo y aparece en la terminal 2.
+6. **Después:** el aviso "después" sale 2 horas tras la evaluación. Para no esperar, anota una evaluación con fecha de hoy y una hora de hace 2 a 3 horas (se aceptan horas de hasta 24 h atrás).
+
+Al probar en Chrome de escritorio, el push usa los servidores de Google, así que el computador debe tener internet.
+
 ## Variables de entorno
 
 Revisa [.env.example](.env.example); ahí está explicada cada una.
@@ -65,8 +85,8 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 ## Agenda
 
 - Agrupada en Hoy, Mañana, Esta semana (hasta el domingo), Más adelante y Hace poco (últimos 2 días, con el ánimo si el joven respondió).
-- "Ya oré 🙏" suma una vez por persona (se puede deshacer). El joven ve cuántas personas oraron por él.
-- ☆ en una tarjeta sigue a ese joven; el filtro "Solo los que sigo" muestra solo a esos jóvenes.
+- "Ya oré" suma una vez por persona (se puede deshacer). El joven ve cuántas personas oraron por él.
+- El botón «Seguir» de una tarjeta sigue a ese joven; el filtro "Solo los que sigo" muestra solo a esos jóvenes.
 - La líder puede quitar cualquier evaluación (por ejemplo, una falsa).
 - `#/agenda?ev=ID` abre y resalta una tarjeta (lo usarán las notificaciones).
 - Todo se muestra en hora de Chile, aunque el celular esté configurado en otra zona.
@@ -237,9 +257,9 @@ Para que **no caigan en spam**:
 - [ ] La agrega a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y la abre desde el ícono «CR ora».
 - [ ] Entra con su correo y el código de 6 dígitos.
 - [ ] En Ajustes toca **Activar avisos en este celular** y acepta.
-- [ ] Toca **Enviar notificación de prueba**: debe llegarle «🙏 CR ora por ti» en segundos, incluso con la app cerrada.
+- [ ] Toca **Enviar notificación de prueba**: debe llegarle «CR ora por ti» en segundos, incluso con la app cerrada.
 - [ ] Al tocar la notificación, se abre la app.
-- [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron a la líder le llega «🙏 Ora por …», y al tocarlo se abre esa tarjeta en la agenda.
+- [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron a la líder le llega «Ora por …», y al tocarlo se abre esa tarjeta en la agenda.
 
 ## Migraciones
 

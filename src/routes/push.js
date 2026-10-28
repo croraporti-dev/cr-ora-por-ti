@@ -95,7 +95,7 @@ router.post('/prueba', limitarPorIp('push-prueba', 10, 60 * 60), requiereDueno, 
     const user = dueno(req);
     if (!push.disponible()) return res.status(503).json({ error: 'El servidor aún no tiene configuradas las claves de avisos (VAPID).' });
     const r = await push.enviarAUsuario(user.id, {
-      title: '🙏 CR ora por ti',
+      title: 'CR ora por ti',
       body: `¡Hola, ${user.nombre}! Así se verán tus avisos. Si ves esto, todo funciona.`,
       url: user.rol === 'JOVEN' ? '/#/mis' : '/#/ajustes',
       tag: 'prueba'

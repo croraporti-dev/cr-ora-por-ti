@@ -3,6 +3,7 @@ import { api } from '../api.js';
 import { pintar, esc, conCarga, avisar } from '../ui.js';
 import { TIPOS, ANIMOS, queTiene } from '../textos.js';
 import { partesChile, cuando, hoyChile, yaPaso } from '../fechas.js';
+import { montarTarjetaAvisos } from './avisos.js';
 
 export function vistaBienvenida() {
   pintar(`
@@ -132,8 +133,11 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
     <h2>Tus próximas evaluaciones</h2>
     ${proximas.length ? proximas.map(tarjetaMia).join('') : '<p class="vacio">Aún no tienes evaluaciones anotadas.</p>'}
     ${pasadas.length ? `<h2>Recientes</h2>${pasadas.map(tarjetaMia).join('')}` : ''}
+    <h2>Avisos</h2>
+    <div id="caja-avisos"></div>
     <button class="btn texto" id="no-soy">¿No eres ${esc(joven.nombre)}?</button>
   `;
+  montarTarjetaAvisos(vista.querySelector('#caja-avisos'), { modo: 'joven' });
 
   const porId = Object.fromEntries(evaluaciones.map((e) => [e.id, e]));
   const cajaForm = vista.querySelector('#caja-form');

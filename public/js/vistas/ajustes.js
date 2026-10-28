@@ -1,6 +1,7 @@
 // Ajustes de avisos (orantes y líder). Se guarda solo al cambiar cada opción.
 import { api } from '../api.js';
 import { pintar, esc, avisar } from '../ui.js';
+import { montarTarjetaAvisos } from './avisos.js';
 
 const ANTICIPACIONES = [
   ['UNA_HORA', '1 hora antes'],
@@ -31,16 +32,7 @@ function prefsDesdeFormulario(f) {
   };
 }
 
-function estadoPush(push) {
-  if (push.necesitaReactivar) {
-    return `<div class="estado-push mal">⚠️ Los avisos de tu celular dejaron de funcionar. Por ahora te avisamos por correo.</div>`;
-  }
-  return push.activas
-    ? `<div class="estado-push bien">🔔 Avisos en el celular: <strong>activos</strong> (${push.activas} ${push.activas === 1 ? 'dispositivo' : 'dispositivos'})</div>`
-    : `<div class="estado-push">🔕 Avisos en este celular: <strong>no activos</strong>. Mientras tanto te avisamos por correo.</div>`;
-}
-
-export async function vistaAjustes() {
+export async function vistaAjustes({ params }) {
   const vista = pintar('<p class="cargando">Cargando…</p>');
   let datos;
   try {
@@ -49,14 +41,14 @@ export async function vistaAjustes() {
     vista.innerHTML = `<p class="error">${esc(err.message)}</p>`;
     return;
   }
-  const { prefs, jovenes, push } = datos;
+  const { prefs, jovenes } = datos;
   const antes = prefs.pushAntes || prefs.emailAntes;
   const despues = prefs.pushDespues || prefs.emailDespues;
   const canal = canalActual(prefs);
 
   vista.innerHTML = `
     <h1>Ajustes</h1>
-    <div id="caja-push">${estadoPush(push)}</div>
+    <div id="caja-push"></div>
     <form id="f-ajustes">
       <div class="tarjeta">
         <h2 style="margin-top:0">¿Cuándo avisarte?</h2>
@@ -87,6 +79,8 @@ export async function vistaAjustes() {
     </form>
   `;
 
+  montarTarjetaAvisos(vista.querySelector('#caja-push'), { modo: 'orante', resaltar: params.get('reactivar') === '1' });
+
   const f = vista.querySelector('#f-ajustes');
   const sincronizar = () => {
     vista.querySelector('#c-anticipacion').hidden = !f.antes.checked;
@@ -97,8 +91,7 @@ export async function vistaAjustes() {
   f.addEventListener('change', async () => {
     sincronizar();
     try {
-      const r = await api('/ajustes', { metodo: 'PUT', datos: prefsDesdeFormulario(f) });
-      vista.querySelector('#caja-push').innerHTML = estadoPush(r.push);
+      await api('/ajustes', { metodo: 'PUT', datos: prefsDesdeFormulario(f) });
       avisar('Guardado ✓');
     } catch (err) {
       avisar(err.message);

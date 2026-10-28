@@ -17,7 +17,9 @@
     "db:deploy": "prisma migrate deploy",
     "crear-lider": "node scripts/crear-lider.js",
     "db:local": "node scripts/db-local.mjs",
-    "test:avisos": "node --test --test-concurrency=1 scripts/test-avisos.js"
+    "test:avisos": "node --test --test-concurrency=1 scripts/test-avisos.js",
+    "iconos": "node scripts/generar-iconos.js",
+    "generar-vapid": "node scripts/generar-vapid.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -33,6 +35,7 @@
     "web-push": "^3.6.7"
   },
   "devDependencies": {
-    "embedded-postgres": "^18.4.0-beta.17"
+    "embedded-postgres": "^18.4.0-beta.17",
+    "sharp": "^0.35.5"
   }
 }

@@ -5,7 +5,7 @@ ore por ellos antes y converse con ellos después. Avisos por **push** (principa
 
 Stack: Node.js + Express 5, Prisma 7 (adapter-pg), PostgreSQL en Supabase, Vercel. Frontend vanilla sin build.
 
-> Este README se completa por etapas. Estado actual: **Etapa 3** (avisos push + correo, cron y NotificationLog).
+> Este README se completa por etapas. Estado actual: **Etapa 4** (PWA instalable + Web Push), pendiente de la prueba en el celular de la líder.
 
 ## Desarrollo local
 
@@ -146,6 +146,100 @@ Simula evaluaciones con push y correo **falsos** (no se envía nada real) y veri
 - chequeo diario y resumen semanal (una sola vez, solo a la líder).
 
 Usa la base `cr_ora_test`, que **se borra en cada ejecución**. Para usar otra, define `DATABASE_URL_TEST`; su nombre debe contener "test".
+
+## App instalable y avisos push
+
+- `public/manifest.webmanifest` incluye nombre "CR ora por ti", short_name "CR ora", `display: standalone` e íconos 192, 512 y maskable. Para regenerar los íconos: `npm run iconos`.
+- `public/sw.js` es el service worker. Recibe el push, abre la tarjeta de la evaluación al tocar el aviso y registra el ánimo con los botones "¿Cómo te fue?" (en Android). También permite abrir la app sin conexión.
+- El permiso se pide **solo** al tocar "Activar avisos en este celular", nunca al cargar la página.
+- En **Ajustes** (orantes y líder) y en **Mis evaluaciones** (jóvenes) hay un indicador "Avisos en este celular: activos / no activos" con los botones "Activar avisos en este celular", "Enviar notificación de prueba" y "Desactivar".
+- **Reactivación:** si una suscripción vence o falla, al abrir la agenda aparece un aviso para reactivarla, y los correos de respaldo traen el enlace `/#/ajustes?reactivar=1`.
+
+### iPhone
+
+- Las push solo funcionan desde **iOS 16.4**, y con la app **agregada a la pantalla de inicio** y abierta desde su ícono.
+- Si se abre en Safari sin instalar, la app muestra una guía de 3 pasos: Compartir → «Agregar a pantalla de inicio» → abrir «CR ora» desde el ícono → activar avisos.
+- En iPhone los botones dentro de la notificación no aparecen: tocar el aviso "¿Cómo te fue?" abre la app, donde están los 3 botones.
+- La app instalada guarda su sesión aparte de Safari: hay que entrar con el **código de 6 dígitos** dentro de la app.
+
+### Claves VAPID
+
+```bash
+npm run generar-vapid
+```
+
+Copia `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` y `VAPID_SUBJECT` (un `mailto:` tuyo) a `.env` y a Vercel.
+Genéralas **una sola vez**: si cambian, todas las suscripciones dejan de servir y cada persona debe reactivar sus avisos.
+
+### Probar el push en local
+
+El push funciona en `http://localhost` en Chrome o Edge, sin HTTPS:
+1. `npm run dev`, abre http://localhost:3000 en Chrome y entra.
+2. Ve a **Ajustes**, toca **Activar avisos en este celular** y acepta el permiso.
+3. Toca **Enviar notificación de prueba**.
+
+Desde el celular se necesita HTTPS, así que hay que probar con la app desplegada en Vercel.
+
+## Desplegar (costo $0)
+
+### 1. Base de datos en Supabase
+1. Crea un proyecto en https://supabase.com (plan Free, región **South America (São Paulo)**). Guarda la contraseña de la base.
+2. Toca **Connect** en el proyecto y copia:
+   - **Transaction pooler** (puerto 6543) → `DATABASE_URL`, agregando `?pgbouncer=true` al final.
+   - **Session pooler** o **Direct connection** (puerto 5432) → `DIRECT_URL`.
+3. Desde tu computador, con esas dos variables en `.env`:
+   ```bash
+   npm run db:deploy
+   npm run crear-lider -- correo-de-la-lider@ejemplo.cl "Nombre"
+   ```
+   El segundo comando muestra el código de invitación.
+
+Supabase pausa los proyectos gratis tras 7 días sin uso. El cron consulta la base cada 10 minutos, así que no debería pausarse.
+
+### 2. Correo con Brevo (recomendado para empezar)
+1. Crea una cuenta gratis en https://www.brevo.com (300 correos al día).
+2. Ve a **Senders, Domains & Dedicated IPs → Senders → Add a sender**, ingresa el correo remitente y nombre "CR ora por ti", y verifícalo con el código que te llega.
+3. Ve a **SMTP & API → API Keys → Generate a new API key** y cópiala en `BREVO_API_KEY`.
+4. En las variables: `MAIL_PROVIDER=brevo`, `MAIL_FROM_EMAIL=<el remitente verificado>`, `MAIL_FROM_NAME=CR ora por ti`.
+
+Para que **no caigan en spam**:
+- Con un remitente `@gmail.com` funciona para empezar, pero Gmail y Outlook desconfían de correos "de gmail" enviados por otro servidor.
+- Lo ideal es usar un **dominio propio** (por ejemplo `avisos@crdigital.cl`). En Brevo, ve a **Domains → Add a domain** y crea en tu DNS los registros que te indique:
+  - el TXT de verificación;
+  - **DKIM**;
+  - **SPF** (`v=spf1 include:spf.brevo.com ~all`, o agrega ese `include` a tu SPF actual);
+  - **DMARC** (`v=DMARC1; p=none; rua=mailto:tu-correo`).
+- Pide a la líder y a los orantes que marquen el primer correo como "No es spam" y agreguen el remitente a sus contactos.
+
+**Alternativa, Resend:** exige un dominio verificado desde el principio (registros SPF y DKIM en tu DNS; plan gratis de 3.000 correos al mes). Variables: `MAIL_PROVIDER=resend` y `RESEND_API_KEY`.
+
+### 3. Código en GitHub
+1. Crea un repositorio en GitHub. Público es lo recomendado: no contiene secretos y da minutos ilimitados para el cron.
+2. Súbelo:
+   ```bash
+   git remote add origin https://github.com/TU-USUARIO/cr-ora-por-ti.git
+   git push -u origin master
+   ```
+
+### 4. Vercel
+1. En https://vercel.com, ve a **Add New → Project** e importa el repositorio. En Framework Preset elige **Other**; el resto lo toma de `vercel.json`.
+2. En **Environment Variables** agrega:
+   - `DATABASE_URL`, `DIRECT_URL`;
+   - `APP_URL` (por ahora `https://<nombre>.vercel.app`);
+   - `SESSION_SECRET`, `CRON_SECRET`;
+   - `MAIL_PROVIDER`, `MAIL_FROM_EMAIL`, `MAIL_FROM_NAME`, `BREVO_API_KEY`;
+   - `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT`.
+3. Toca **Deploy**. Si la URL final es distinta, corrige `APP_URL` y vuelve a desplegar.
+4. Configura el cron. En GitHub ve a **Settings → Secrets → Actions**, agrega `APP_URL` y `CRON_SECRET`, y en **Actions → Enviar avisos** prueba con **Run workflow**. Si quieres respaldo, configura también cron-job.org (ver la sección del cron).
+
+### 5. Prueba con la líder (cierra la Etapa 4)
+- [ ] En su celular abre la URL de Vercel (en iPhone, con Safari).
+- [ ] La agrega a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y la abre desde el ícono «CR ora».
+- [ ] Entra con su correo y el código de 6 dígitos.
+- [ ] En Ajustes toca **Activar avisos en este celular** y acepta.
+- [ ] Toca **Enviar notificación de prueba**: debe llegarle «🙏 CR ora por ti» en segundos, incluso con la app cerrada.
+- [ ] Al tocar la notificación, se abre la app.
+- [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron a la líder le llega «🙏 Ora por …», y al tocarlo se abre esa tarjeta en la agenda.
 
 ## Migraciones
 

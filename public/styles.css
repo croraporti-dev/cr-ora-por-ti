@@ -160,4 +160,15 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .estado-push.mal { background: var(--calido-light); color: #b45309; }
 .check input[type=radio] { accent-color: var(--primary); }
 
+/* Avisos y guía de iPhone */
+.banner {
+  display: flex; gap: 10px; align-items: flex-start; text-decoration: none; color: var(--primary);
+  background: var(--primary-light); border-radius: var(--radius); padding: 12px 14px; margin-bottom: 16px;
+}
+.banner.mal { background: var(--calido-light); color: #b45309; }
+.guia { border: 2px solid var(--primary-light); }
+.pasos { list-style: none; display: grid; gap: 14px; margin-bottom: 14px; }
+.pasos li { display: flex; gap: 12px; align-items: center; }
+.pasos li > :first-child { flex-shrink: 0; }
+
 [hidden] { display: none !important; }

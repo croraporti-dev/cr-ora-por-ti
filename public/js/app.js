@@ -5,8 +5,18 @@ import { vistaBienvenida, vistaMis } from './vistas/joven.js';
 import { vistaAgenda } from './vistas/agenda.js';
 import { vistaLider } from './vistas/lider.js';
 import { vistaAjustes } from './vistas/ajustes.js';
+import * as push from './push.js';
 
-const estado = { user: null };
+const estado = { user: null, avisos: null };
+
+async function cargarSesion() {
+  try {
+    ({ user: estado.user, avisos: estado.avisos } = await api('/yo'));
+  } catch {
+    estado.user = null;
+    estado.avisos = null;
+  }
+}
 
 // Rutas abiertas: el joven no inicia sesión.
 const PUBLICAS = {
@@ -58,8 +68,10 @@ async function render() {
     irA,
     params,
     user: estado.user,
-    alEntrar(user) {
-      estado.user = user;
+    avisos: estado.avisos,
+    async alEntrar() {
+      await cargarSesion();
+      push.sincronizar();
       irA('#/agenda');
     }
   };
@@ -89,13 +101,16 @@ async function render() {
 }
 
 async function iniciar() {
-  try {
-    estado.user = (await api('/yo')).user;
-  } catch {
-    estado.user = null;
-  }
+  push.registrarServiceWorker();
+  push.precargarClave();
+  await cargarSesion();
   window.addEventListener('hashchange', render);
-  render();
+  // Al tocar una notificación con la app ya abierta, el service worker pide ir a esa tarjeta.
+  navigator.serviceWorker?.addEventListener('message', (e) => {
+    if (e.data?.tipo === 'navegar') location.hash = new URL(e.data.url, location.origin).hash;
+  });
+  await render();
+  await push.sincronizar();
 }
 
 iniciar();

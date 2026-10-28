@@ -36,6 +36,7 @@ app.use('/api/yo', require('./routes/yo'));
 app.use('/api/cron', require('./routes/cron'));
 app.use('/api/animo', require('./routes/animo'));
 app.use('/api/ajustes', require('./routes/ajustes'));
+app.use('/api/push', require('./routes/push'));
 app.use('/api/joven', require('./routes/joven'));
 app.use('/api/agenda', require('./routes/agenda'));
 app.use('/api/lider', require('./routes/lider'));

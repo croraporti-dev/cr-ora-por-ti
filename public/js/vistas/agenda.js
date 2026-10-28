@@ -34,9 +34,22 @@ function tarjeta(e, user) {
     </article>`;
 }
 
-export async function vistaAgenda({ user, params }) {
+// Aviso al abrir la app si los avisos del celular fallaron o nunca se activaron.
+function bannerAvisos(avisos) {
+  if (!avisos) return '';
+  if (avisos.necesitaReactivar) {
+    return `<a class="banner mal" href="#/ajustes?reactivar=1">⚠️ <span>Tus avisos dejaron de llegar al celular. <strong>Toca aquí para reactivarlos.</strong></span></a>`;
+  }
+  if (avisos.quierePush && !avisos.pushActivas) {
+    return `<a class="banner" href="#/ajustes?reactivar=1">🔔 <span>Activa los avisos en tu celular para saber cuándo orar. <strong>Activar</strong></span></a>`;
+  }
+  return '';
+}
+
+export async function vistaAgenda({ user, params, avisos }) {
   const soloSeguidos = memoria.leer('cr_filtro') === 'seguidos';
   const vista = pintar(`
+    ${bannerAvisos(avisos)}
     <h1>Agenda de oración</h1>
     <div class="pestanas" role="tablist">
       <button role="tab" data-filtro="todos" aria-selected="${!soloSeguidos}">Todos</button>
@@ -48,7 +61,7 @@ export async function vistaAgenda({ user, params }) {
   vista.querySelectorAll('[data-filtro]').forEach((b) =>
     b.addEventListener('click', () => {
       memoria.guardar('cr_filtro', b.dataset.filtro);
-      vistaAgenda({ user, params });
+      vistaAgenda({ user, params, avisos });
     })
   );
 

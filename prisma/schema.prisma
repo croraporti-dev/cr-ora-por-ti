@@ -1,0 +1,205 @@
+// CR ora por ti — esquema de datos.
+// Todas las fechas se guardan en UTC; se muestran en America/Santiago.
+// Por diseño NO existe ningún campo para notas ni calificaciones.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  JOVEN
+  ORANTE
+  LIDER
+}
+
+enum TipoEvaluacion {
+  PRUEBA
+  EXAMEN
+  TRABAJO
+  OTRO
+}
+
+enum EstadoEvaluacion {
+  PENDIENTE
+  REALIZADA
+}
+
+enum Animo {
+  BIEN
+  MAS_O_MENOS
+  NECESITA_ORACION
+}
+
+// 1H | 3H | noche anterior a las 20:00 (hora de Chile)
+enum Anticipacion {
+  UNA_HORA
+  TRES_HORAS
+  NOCHE_ANTERIOR_20H
+}
+
+enum Seguir {
+  TODOS
+  LISTA
+}
+
+enum TipoAviso {
+  ANTES
+  DESPUES
+}
+
+enum Canal {
+  EMAIL
+  PUSH
+}
+
+enum EstadoEnvio {
+  ENVIANDO
+  OK
+  FALLO
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  nombre         String
+  rol            Rol      @default(ORANTE)
+  createdAt      DateTime @default(now())
+  // Consentimiento al registrarse
+  aceptoAvisoAt  DateTime?
+  esMenor        Boolean  @default(false)
+  apoderadoAt    DateTime?
+  // Se incrementa para invalidar todas las sesiones del usuario
+  sessionVersion Int      @default(0)
+
+  evaluaciones     Evaluation[]
+  prefs            NotificationPrefs?
+  pushSubs         PushSubscription[]
+  oraciones        PrayerLog[]
+  avisos           NotificationLog[]
+  seguidoPor       NotificationPrefs[] @relation("JovenesSeguidos")
+  codigosCreados   InviteCode[]
+}
+
+model Evaluation {
+  id              String           @id @default(cuid())
+  userId          String
+  tipo            TipoEvaluacion
+  ramo            String
+  fechaHora       DateTime
+  estado          EstadoEvaluacion @default(PENDIENTE)
+  resultadoAnimo  Animo?
+  createdAt       DateTime         @default(now())
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  oraciones PrayerLog[]
+  avisos    NotificationLog[]
+
+  @@index([fechaHora])
+  @@index([userId])
+}
+
+model NotificationPrefs {
+  userId          String       @id
+  emailAntes      Boolean      @default(false)
+  emailDespues    Boolean      @default(false)
+  pushAntes       Boolean      @default(true)
+  pushDespues     Boolean      @default(true)
+  tambienCorreo   Boolean      @default(false)
+  anticipacion    Anticipacion @default(UNA_HORA)
+  seguir          Seguir       @default(TODOS)
+  jovenesSeguidos User[]       @relation("JovenesSeguidos")
+  // Lo marca el chequeo diario cuando el push de este usuario no responde bien
+  pushNecesitaReactivar Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model PushSubscription {
+  id             String    @id @default(cuid())
+  userId         String
+  endpoint       String    @unique
+  p256dh         String
+  auth           String
+  userAgent      String?
+  createdAt      DateTime  @default(now())
+  lastSuccessAt  DateTime?
+  lastErrorAt    DateTime?
+  activa         Boolean   @default(true)
+  fallosSeguidos Int       @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PrayerLog {
+  id           String   @id @default(cuid())
+  evaluationId String
+  userId       String
+  createdAt    DateTime @default(now())
+
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([evaluationId, userId])
+}
+
+model NotificationLog {
+  id           String      @id @default(cuid())
+  userId       String
+  evaluationId String
+  tipo         TipoAviso
+  canal        Canal
+  estado       EstadoEnvio @default(ENVIANDO)
+  sentAt       DateTime    @default(now())
+  error        String?
+
+  user       User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  evaluation Evaluation @relation(fields: [evaluationId], references: [id], onDelete: Cascade)
+
+  // Garantiza que NUNCA se envíe dos veces el mismo aviso por el mismo canal
+  @@unique([userId, evaluationId, tipo, canal])
+}
+
+model InviteCode {
+  id          String   @id @default(cuid())
+  code        String   @unique
+  activo      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  createdById String?
+
+  createdBy User? @relation(fields: [createdById], references: [id], onDelete: SetNull)
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+// Código de 6 dígitos + enlace mágico. Solo se guardan hashes.
+model LoginToken {
+  id        String    @id @default(cuid())
+  email     String
+  codeHash  String
+  linkHash  String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  intentos  Int       @default(0)
+  // Datos del registro pendiente (nombre, rol, consentimiento) hasta verificar el correo
+  registro  Json?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+// Rate limiting compartido entre instancias serverless
+model RateLimit {
+  key     String   @id
+  count   Int
+  resetAt DateTime
+}

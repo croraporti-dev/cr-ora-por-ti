@@ -1,0 +1,37 @@
+{
+  "name": "cr-ora-por-ti",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CR ora por ti: agenda de oración por las evaluaciones de los jóvenes",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "node --watch server.js",
+    "start": "node server.js",
+    "build": "prisma generate",
+    "postinstall": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:deploy": "prisma migrate deploy",
+    "crear-lider": "node scripts/crear-lider.js",
+    "db:local": "node scripts/db-local.mjs"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "@prisma/config": "^7.8.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^18.0.9",
+    "express": "^5.3.0",
+    "jsonwebtoken": "^9.0.3",
+    "luxon": "^3.7.2",
+    "pg": "^8.23.1",
+    "prisma": "^7.8.0",
+    "web-push": "^3.6.7"
+  },
+  "devDependencies": {
+    "embedded-postgres": "^18.4.0-beta.17"
+  }
+}

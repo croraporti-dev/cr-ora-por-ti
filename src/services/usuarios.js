@@ -3,10 +3,10 @@ const prisma = require('../db');
 // Valores por defecto de los avisos según el rol.
 function prefsPorDefecto(rol) {
   if (rol === 'JOVEN') {
-    return { pushAntes: false, pushDespues: false, emailAntes: false, emailDespues: false, anticipacion: 'UNA_HORA', seguir: 'TODOS' };
+    return { pushAntes: false, pushDespues: false, emailAntes: false, emailDespues: false, anticipacion: 'UNA_HORA' };
   }
-  // LIDER (requisito) y ORANTE: push antes y después, 1 hora, siguen a todos.
-  return { pushAntes: true, pushDespues: true, emailAntes: false, emailDespues: false, anticipacion: 'UNA_HORA', seguir: 'TODOS' };
+  // LIDER (requisito) y ORANTE: push antes y después, 1 hora antes.
+  return { pushAntes: true, pushDespues: true, emailAntes: false, emailDespues: false, anticipacion: 'UNA_HORA' };
 }
 
 async function crearUsuario({ email, nombre, rol, esMenor = false, apoderado = false }) {

@@ -1,4 +1,4 @@
-// Tarjeta "Avisos en este celular": estado, activar, notificación de prueba y guía para iPhone.
+// Tarjeta "Avisos en este dispositivo": estado, activar, notificación de prueba y guía para iPhone.
 import { api } from '../api.js';
 import { esc, conCarga, avisar } from '../ui.js';
 import * as push from '../push.js';
@@ -17,7 +17,7 @@ function guiaIphone(iosViejo) {
       <ol class="pasos">
         <li>${ICONO_COMPARTIR}<div><strong>1. Toca Compartir</strong><br><span class="chico">El cuadrado con flecha en la barra de Safari. Si no lo ves, toca ··· primero.</span></div></li>
         <li>${ICONO_AGREGAR}<div><strong>2. «Agregar a pantalla de inicio»</strong><br><span class="chico">Baja en la lista hasta encontrarlo y toca «Agregar».</span></div></li>
-        <li>${ICONO_APP}<div><strong>3. Abre «CR ora» desde el ícono</strong><br><span class="chico">Ahí verás el botón «Activar avisos en este celular».</span></div></li>
+        <li>${ICONO_APP}<div><strong>3. Abre «CR ora» desde el ícono</strong><br><span class="chico">Ahí verás el botón «Activar avisos en este dispositivo».</span></div></li>
       </ol>
       <p class="chico">Si entras con correo, dentro de la app instalada escribe el código de 6 dígitos (el enlace del correo abre Safari).</p>
     </div>`;
@@ -58,15 +58,15 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
     }
     const activo = !!(sub && srv.esteDispositivo?.activa && push.entorno().permiso === 'granted');
     const instalar = e.android && !e.instalada && push.puedeInstalar()
-      ? '<button class="btn texto bloque" data-accion="instalar">Instalar la app en este celular</button>'
+      ? '<button class="btn texto bloque" data-accion="instalar">Instalar la app en este dispositivo</button>'
       : '';
 
     if (activo) {
       contenedor.innerHTML = `
         <div class="tarjeta estado-push bien ${resaltar ? 'resaltada' : ''}">
-          <p style="margin-bottom:12px">Avisos en este celular: <strong>activos</strong></p>
+          <p style="margin-bottom:12px">Avisos en este dispositivo: <strong>activos</strong></p>
           <button class="btn bloque" data-accion="prueba">Enviar notificación de prueba</button>
-          <button class="btn texto bloque" data-accion="desactivar">Desactivar en este celular</button>
+          <button class="btn texto bloque" data-accion="desactivar">Desactivar en este dispositivo</button>
           ${instalar}
         </div>`;
       return;
@@ -76,11 +76,11 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
     contenedor.innerHTML = `
       <div class="tarjeta ${fallaron ? 'estado-push mal' : ''} ${resaltar ? 'resaltada' : ''}">
         <p style="margin-bottom:12px">${fallaron
-          ? '<strong>Tus avisos dejaron de funcionar.</strong> Vuelve a activarlos en este celular.'
-          : `Avisos en este celular: <strong>no activos</strong>.<br><span class="chico">${esc(intro)}</span>`}</p>
+          ? '<strong>Tus avisos dejaron de funcionar.</strong> Vuelve a activarlos en este dispositivo.'
+          : `Avisos en este dispositivo: <strong>no activos</strong>.<br><span class="chico">${esc(intro)}</span>`}</p>
         ${srv.disponible === false ? '<p class="error">El servidor aún no tiene configuradas las claves de avisos.</p>' : ''}
         <p class="error error-accion" hidden></p>
-        <button class="btn bloque" data-accion="activar">Activar avisos en este celular</button>
+        <button class="btn bloque" data-accion="activar">Activar avisos en este dispositivo</button>
         ${instalar}
       </div>`;
   }
@@ -95,7 +95,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
       await conCarga(boton, cajaError, async () => {
         try {
           await push.activar();
-          avisar('Listo, avisos activados en este celular');
+          avisar('Listo, avisos activados en este dispositivo');
         } catch (err) {
           if (err.bloqueado) return pintar();
           throw err;
@@ -108,7 +108,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
         avisar('Enviada. Debería llegarte en unos segundos.');
       });
     } else if (accion === 'desactivar') {
-      if (!confirm('¿Desactivar los avisos en este celular?')) return;
+      if (!confirm('¿Desactivar los avisos en este dispositivo?')) return;
       await push.desactivar();
       await pintar();
     } else if (accion === 'reintentar') {

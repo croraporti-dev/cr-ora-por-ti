@@ -126,22 +126,16 @@ async function avisarJoven({ ev, ahora, stats }) {
   stats[r.ok ? 'push' : 'pushFallidos']++;
 }
 
+// Todos los orantes y líderes reciben avisos de todos los jóvenes, sin distinciones.
 async function cargarOrantes() {
   const usuarios = await prisma.user.findMany({
     where: { rol: { in: ['ORANTE', 'LIDER'] } },
-    include: {
-      prefs: { include: { jovenesSeguidos: { select: { id: true } } } },
-      _count: { select: { pushSubs: { where: { activa: true } } } }
-    }
+    include: { prefs: true, _count: { select: { pushSubs: { where: { activa: true } } } } }
   });
-  return usuarios.map((u) => {
-    const prefs = u.prefs || { ...prefsPorDefecto(u.rol), tambienCorreo: false, pushNecesitaReactivar: false, jovenesSeguidos: [] };
-    return {
-      user: { id: u.id, email: u.email, pushActivas: u._count.pushSubs },
-      prefs,
-      sigue: new Set(prefs.jovenesSeguidos.map((j) => j.id))
-    };
-  });
+  return usuarios.map((u) => ({
+    user: { id: u.id, email: u.email, pushActivas: u._count.pushSubs },
+    prefs: u.prefs || { ...prefsPorDefecto(u.rol), tambienCorreo: false, pushNecesitaReactivar: false }
+  }));
 }
 
 // Un ciclo completo. `ahora` se puede inyectar para pruebas.
@@ -169,7 +163,6 @@ async function enviarAvisosPendientes({ ahora = new Date() } = {}) {
     const despues = tocaDespues(ev, ahora);
     for (const o of orantes) {
       if (o.user.id === ev.userId) continue;
-      if (o.prefs.seguir === 'LISTA' && !o.sigue.has(ev.userId)) continue;
       if (tocaAntes(ev, o.prefs, ahora) && (o.prefs.pushAntes || o.prefs.emailAntes)) {
         await avisarOrante({ ...o, ev, tipo: 'ANTES', ahora, stats });
       }

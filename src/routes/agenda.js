@@ -8,23 +8,12 @@ const { ahoraLocal } = require('../services/tiempo');
 const router = express.Router();
 router.use(requiereRol('ORANTE', 'LIDER'));
 
-async function idsSeguidos(userId) {
-  const prefs = await prisma.notificationPrefs.findUnique({
-    where: { userId },
-    select: { jovenesSeguidos: { select: { id: true } } }
-  });
-  return (prefs?.jovenesSeguidos || []).map((j) => j.id);
-}
-
-// GET /api/agenda?seguidos=1 — desde hace 2 días en adelante (las pasadas muestran el ánimo).
+// GET /api/agenda — todos los jóvenes, desde hace 2 días en adelante (las pasadas muestran el ánimo).
 router.get('/', async (req, res, next) => {
   try {
     const desde = ahoraLocal().startOf('day').minus({ days: 2 }).toJSDate();
-    const seguidos = await idsSeguidos(req.user.id);
-    const soloSeguidos = req.query.seguidos === '1';
-
     const evaluaciones = await prisma.evaluation.findMany({
-      where: { fechaHora: { gte: desde }, ...(soloSeguidos ? { userId: { in: seguidos } } : {}) },
+      where: { fechaHora: { gte: desde } },
       orderBy: { fechaHora: 'asc' },
       include: {
         user: { select: { id: true, nombre: true, apellido: true } },
@@ -38,8 +27,7 @@ router.get('/', async (req, res, next) => {
         ...ev.aJson(e),
         joven: { id: e.user.id, nombre: ev.nombreVisible(e.user) },
         oraciones: e._count.oraciones,
-        yoOre: e.oraciones.length > 0,
-        sigo: seguidos.includes(e.user.id)
+        yoOre: e.oraciones.length > 0
       }))
     });
   } catch (err) {
@@ -74,24 +62,5 @@ router.delete('/:id/ore', async (req, res, next) => {
     next(err);
   }
 });
-
-// POST/DELETE /api/agenda/seguir/:jovenId — seguir o dejar de seguir a un joven
-async function cambiarSeguimiento(req, res, next, seguir) {
-  try {
-    const joven = await prisma.user.findFirst({ where: { id: req.params.jovenId, rol: 'JOVEN' }, select: { id: true } });
-    if (!joven) return res.status(404).json({ error: 'No encontramos a ese joven.' });
-    // "disconnect" no es válido al crear, así que solo se crea la fila al seguir.
-    await prisma.notificationPrefs.upsert({
-      where: { userId: req.user.id },
-      create: { userId: req.user.id, ...(seguir ? { jovenesSeguidos: { connect: { id: joven.id } } } : {}) },
-      update: { jovenesSeguidos: seguir ? { connect: { id: joven.id } } : { disconnect: { id: joven.id } } }
-    });
-    res.json({ ok: true, sigo: seguir });
-  } catch (err) {
-    next(err);
-  }
-}
-router.post('/seguir/:jovenId', (req, res, next) => cambiarSeguimiento(req, res, next, true));
-router.delete('/seguir/:jovenId', (req, res, next) => cambiarSeguimiento(req, res, next, false));
 
 module.exports = router;

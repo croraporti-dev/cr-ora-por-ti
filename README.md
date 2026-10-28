@@ -42,10 +42,10 @@ Usa tres terminales:
 
 Recorrido sugerido, en **Chrome** de tu computador:
 1. **Líder:** `npm run crear-lider -- tu@correo.cl "Tu Nombre"`. Entra en http://localhost:3000 → «Entrar para orar», con el código de 6 dígitos que aparece en la terminal 2.
-2. **Avisos:** en Ajustes toca «Activar avisos en este celular», acepta el permiso y toca «Enviar notificación de prueba». La notificación debe llegar aunque minimices Chrome.
+2. **Avisos:** en Ajustes toca «Activar avisos en este dispositivo», acepta el permiso y toca «Enviar notificación de prueba». La notificación debe llegar aunque minimices Chrome.
 3. **Joven:** abre una ventana de incógnito (así tiene otra sesión), toca «Anotar mi prueba», completa tus datos y anota una evaluación para hoy, unos 50 minutos más tarde.
 4. En el siguiente minuto, la terminal 3 muestra `push enviados: 1` y te llega «Ora por …». Al tocarla se abre esa tarjeta en la agenda.
-5. **Respaldo por correo:** en Ajustes toca «Desactivar en este celular» y anota otra evaluación. Ahora el aviso sale por correo y aparece en la terminal 2.
+5. **Respaldo por correo:** en Ajustes toca «Desactivar en este dispositivo» y anota otra evaluación. Ahora el aviso sale por correo y aparece en la terminal 2.
 6. **Después:** el aviso "después" sale 2 horas tras la evaluación. Para no esperar, anota una evaluación con fecha de hoy y una hora de hace 2 a 3 horas (se aceptan horas de hasta 24 h atrás).
 
 Al probar en Chrome de escritorio, el push usa los servidores de Google, así que el computador debe tener internet.
@@ -70,7 +70,7 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 
 **Jóvenes (`JOVEN`): sin cuenta ni inicio de sesión.**
 - Abren la app, tocan "Anotar mi prueba" y la primera vez escriben nombre, apellido y celular, aceptan el aviso de privacidad y, si son menores, marcan que su apoderado está en conocimiento.
-- Su celular queda recordado con una cookie httpOnly de 1 año, así que las siguientes veces solo anotan la evaluación.
+- Su dispositivo queda recordado con una cookie httpOnly de 1 año, así que las siguientes veces solo anotan la evaluación.
 - Solo ven y modifican **sus propias** evaluaciones. No ven la agenda general, por lo que un desconocido que abra el formulario no ve datos de nadie.
 - Mismo número de celular = mismo joven. Si cambia de teléfono, escribe su número otra vez y recupera sus evaluaciones.
 - El celular solo lo ve la líder. Los orantes ven "Camila P.".
@@ -86,7 +86,7 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 
 - Agrupada en Hoy, Mañana, Esta semana (hasta el domingo), Más adelante y Hace poco (últimos 2 días, con el ánimo si el joven respondió).
 - "Ya oré" suma una vez por persona (se puede deshacer). El joven ve cuántas personas oraron por él.
-- El botón «Seguir» de una tarjeta sigue a ese joven; el filtro "Solo los que sigo" muestra solo a esos jóvenes.
+- Sin distinciones: todos los orantes y la líder ven y reciben avisos de todos los jóvenes.
 - La líder puede quitar cualquier evaluación (por ejemplo, una falsa).
 - `#/agenda?ev=ID` abre y resalta una tarjeta (lo usarán las notificaciones).
 - Todo se muestra en hora de Chile, aunque el celular esté configurado en otra zona.
@@ -97,8 +97,8 @@ El push es el canal principal; el correo es el respaldo automático.
 
 | Aviso | A quién | Cuándo |
 |---|---|---|
-| **Antes** | Orantes y líder que siguen a ese joven | Según la anticipación de cada persona: 1 h, 3 h o la noche anterior a las 20:00 (hora de Chile). Vale hasta la hora de la evaluación. |
-| **Después** | Orantes y líder | 2 h después de la evaluación (válido por 24 h). Incluye el ánimo si el joven ya respondió. |
+| **Antes** | Todos los orantes y la líder | Según la anticipación de cada persona: 1 h, 3 h o la noche anterior a las 20:00 (hora de Chile). Vale hasta la hora de la evaluación. |
+| **Después** | Todos los orantes y la líder | 2 h después de la evaluación (válido por 24 h). Incluye el ánimo si el joven ya respondió. |
 | **¿Cómo te fue?** | El joven | 2 h después, solo por push con 3 botones (Bien / Más o menos / Necesito oración) que funcionan sin sesión. Si no tiene push, responde en la app. |
 | **Resumen semanal** | La líder | Domingo desde las 20:00, por correo. |
 
@@ -160,7 +160,7 @@ npm run test:avisos
 Simula evaluaciones con push y correo **falsos** (no se envía nada real) y verifica:
 - cada aviso sale una sola vez, incluso con el cron corriendo 3 veces seguidas o 4 en paralelo;
 - respaldo por correo cuando el push da 410 (suscripción desactivada y enlace para reactivar) o 500;
-- "también por correo", "solo los que sigo", la anticipación de 3 h y un cron atrasado;
+- todos reciben avisos de todos los jóvenes; "también por correo", la anticipación de 3 h y un cron atrasado;
 - "noche anterior 20:00" en los cambios de horario de abril y septiembre;
 - aviso "después" con el ánimo, push "¿Cómo te fue?" al joven con token firmado, y aviso de nuevo si se cambia la hora;
 - chequeo diario y resumen semanal (una sola vez, solo a la líder).
@@ -171,8 +171,8 @@ Usa la base `cr_ora_test`, que **se borra en cada ejecución**. Para usar otra, 
 
 - `public/manifest.webmanifest` incluye nombre "CR ora por ti", short_name "CR ora", `display: standalone` e íconos 192, 512 y maskable. Para regenerar los íconos: `npm run iconos`.
 - `public/sw.js` es el service worker. Recibe el push, abre la tarjeta de la evaluación al tocar el aviso y registra el ánimo con los botones "¿Cómo te fue?" (en Android). También permite abrir la app sin conexión.
-- El permiso se pide **solo** al tocar "Activar avisos en este celular", nunca al cargar la página.
-- En **Ajustes** (orantes y líder) y en **Mis evaluaciones** (jóvenes) hay un indicador "Avisos en este celular: activos / no activos" con los botones "Activar avisos en este celular", "Enviar notificación de prueba" y "Desactivar".
+- El permiso se pide **solo** al tocar "Activar avisos en este dispositivo", nunca al cargar la página.
+- En **Ajustes** (orantes y líder) y en **Mis evaluaciones** (jóvenes) hay un indicador "Avisos en este dispositivo: activos / no activos" con los botones "Activar avisos en este dispositivo", "Enviar notificación de prueba" y "Desactivar".
 - **Reactivación:** si una suscripción vence o falla, al abrir la agenda aparece un aviso para reactivarla, y los correos de respaldo traen el enlace `/#/ajustes?reactivar=1`.
 
 ### iPhone
@@ -195,7 +195,7 @@ Genéralas **una sola vez**: si cambian, todas las suscripciones dejan de servir
 
 El push funciona en `http://localhost` en Chrome o Edge, sin HTTPS:
 1. `npm run dev`, abre http://localhost:3000 en Chrome y entra.
-2. Ve a **Ajustes**, toca **Activar avisos en este celular** y acepta el permiso.
+2. Ve a **Ajustes**, toca **Activar avisos en este dispositivo** y acepta el permiso.
 3. Toca **Enviar notificación de prueba**.
 
 Desde el celular se necesita HTTPS, así que hay que probar con la app desplegada en Vercel.
@@ -256,7 +256,7 @@ Para que **no caigan en spam**:
 - [ ] En su celular abre la URL de Vercel (en iPhone, con Safari).
 - [ ] La agrega a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y la abre desde el ícono «CR ora».
 - [ ] Entra con su correo y el código de 6 dígitos.
-- [ ] En Ajustes toca **Activar avisos en este celular** y acepta.
+- [ ] En Ajustes toca **Activar avisos en este dispositivo** y acepta.
 - [ ] Toca **Enviar notificación de prueba**: debe llegarle «CR ora por ti» en segundos, incluso con la app cerrada.
 - [ ] Al tocar la notificación, se abre la app.
 - [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron a la líder le llega «Ora por …», y al tocarlo se abre esa tarjeta en la agenda.

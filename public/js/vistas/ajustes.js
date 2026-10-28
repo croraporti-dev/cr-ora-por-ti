@@ -26,9 +26,7 @@ function prefsDesdeFormulario(f) {
     emailAntes: antes && !usaPush,
     emailDespues: despues && !usaPush,
     tambienCorreo: canal === 'ambos',
-    anticipacion: f.anticipacion.value,
-    seguir: f.seguir.value,
-    jovenesSeguidos: [...f.querySelectorAll('input[name=joven]:checked')].map((c) => c.value)
+    anticipacion: f.anticipacion.value
   };
 }
 
@@ -41,7 +39,7 @@ export async function vistaAjustes({ params }) {
     vista.innerHTML = `<p class="error">${esc(err.message)}</p>`;
     return;
   }
-  const { prefs, jovenes } = datos;
+  const { prefs } = datos;
   const antes = prefs.pushAntes || prefs.emailAntes;
   const despues = prefs.pushDespues || prefs.emailDespues;
   const canal = canalActual(prefs);
@@ -61,21 +59,11 @@ export async function vistaAjustes({ params }) {
 
       <div class="tarjeta">
         <h2 style="margin-top:0">¿Por dónde?</h2>
-        <label class="check"><input type="radio" name="canal" value="celular" ${canal === 'celular' ? 'checked' : ''}><span>Notificación en el celular <span class="chico">(si no llega, te escribimos por correo)</span></span></label>
-        <label class="check"><input type="radio" name="canal" value="ambos" ${canal === 'ambos' ? 'checked' : ''}><span>Celular y también correo</span></label>
+        <label class="check"><input type="radio" name="canal" value="celular" ${canal === 'celular' ? 'checked' : ''}><span>Notificación en tu dispositivo <span class="chico">(si no llega, te escribimos por correo)</span></span></label>
+        <label class="check"><input type="radio" name="canal" value="ambos" ${canal === 'ambos' ? 'checked' : ''}><span>Notificación y también correo</span></label>
         <label class="check"><input type="radio" name="canal" value="correo" ${canal === 'correo' ? 'checked' : ''}><span>Solo correo</span></label>
       </div>
-
-      <div class="tarjeta">
-        <h2 style="margin-top:0">¿Por quién?</h2>
-        <label class="check"><input type="radio" name="seguir" value="TODOS" ${prefs.seguir === 'TODOS' ? 'checked' : ''}><span>Por todos los jóvenes</span></label>
-        <label class="check"><input type="radio" name="seguir" value="LISTA" ${prefs.seguir === 'LISTA' ? 'checked' : ''}><span>Solo por los que elijo</span></label>
-        <div id="lista-jovenes" style="margin-left:34px" ${prefs.seguir === 'LISTA' ? '' : 'hidden'}>
-          ${jovenes.length
-            ? jovenes.map((j) => `<label class="check"><input type="checkbox" name="joven" value="${esc(j.id)}" ${prefs.jovenesSeguidos.includes(j.id) ? 'checked' : ''}><span>${esc(j.nombre)}</span></label>`).join('')
-            : '<p class="chico">Aún no hay jóvenes registrados.</p>'}
-        </div>
-      </div>
+      <p class="chico">Recibirás avisos de todos los jóvenes del grupo.</p>
     </form>
   `;
 
@@ -84,7 +72,6 @@ export async function vistaAjustes({ params }) {
   const f = vista.querySelector('#f-ajustes');
   const sincronizar = () => {
     vista.querySelector('#c-anticipacion').hidden = !f.antes.checked;
-    vista.querySelector('#lista-jovenes').hidden = f.seguir.value !== 'LISTA';
   };
   sincronizar();
 

@@ -12,7 +12,7 @@ router.use(cargarJoven);
 
 const DIA_MS = 24 * 60 * 60 * 1000;
 
-// GET /api/joven — quién es este celular y sus evaluaciones
+// GET /api/joven — quién es este dispositivo y sus evaluaciones
 router.get('/', async (req, res, next) => {
   try {
     if (!req.joven) return res.json({ joven: null });
@@ -61,7 +61,7 @@ router.post('/perfil', limitarPorIp('joven-perfil', 8, 60 * 60), async (req, res
   }
 });
 
-// POST /api/joven/olvidar — "No soy yo": este celular deja de recordarlo
+// POST /api/joven/olvidar — "No soy yo": este dispositivo deja de recordarlo
 router.post('/olvidar', async (req, res, next) => {
   try {
     await olvidarDispositivo(req, res);

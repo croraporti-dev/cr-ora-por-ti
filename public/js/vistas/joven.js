@@ -24,7 +24,7 @@ const AVISO = `Solo guardamos tu <strong>nombre, celular y el ramo, tipo, fecha 
 function formularioPerfil() {
   return `
     <h1>Cuéntanos quién eres</h1>
-    <p class="sub">Solo la primera vez. Este celular te recordará.</p>
+    <p class="sub">Solo la primera vez. Este dispositivo te recordará.</p>
     <form id="f-perfil" class="tarjeta" novalidate>
       <label class="campo"><span>Nombre</span><input type="text" name="nombre" autocomplete="given-name" maxlength="40" required></label>
       <label class="campo"><span>Apellido</span><input type="text" name="apellido" autocomplete="family-name" maxlength="40" required></label>

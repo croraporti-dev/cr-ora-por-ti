@@ -134,8 +134,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 
 /* Tarjetas de evaluación */
 .evaluacion { padding: 16px 18px; scroll-margin-top: 80px; }
-.ev-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-.ev-nombre { font-size: 1.1rem; }
+.ev-nombre { display: block; font-size: 1.1rem; }
 .ev-titulo { font-weight: 600; margin-top: 2px; }
 .ev-cuando { color: var(--text-muted); font-size: 0.9rem; margin-top: 2px; }
 .ev-pie { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
@@ -143,12 +142,6 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .oraron { color: var(--text-muted); font-size: 0.9rem; }
 .btn.orar { background: var(--calido); color: #fff; }
 .btn.orar:hover { background: #d97706; }
-.seguir {
-  font: inherit; font-size: 0.8rem; font-weight: 600; cursor: pointer;
-  padding: 4px 12px; border-radius: 999px; border: 1.5px solid var(--border);
-  background: var(--surface); color: var(--text-muted);
-}
-.seguir.activo { border-color: var(--primary); background: var(--primary-light); color: var(--primary); }
 .etiqueta {
   display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
   background: var(--success-light); color: var(--success); vertical-align: middle;

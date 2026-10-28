@@ -100,8 +100,8 @@ router.post('/prueba', limitarPorIp('push-prueba', 10, 60 * 60), requiereDueno, 
       url: user.rol === 'JOVEN' ? '/#/mis' : '/#/ajustes',
       tag: 'prueba'
     });
-    if (r.sinSuscripcion) return res.status(400).json({ error: 'No hay avisos activos en ningún dispositivo. Primero toca "Activar avisos en este celular".' });
-    if (!r.ok) return res.status(502).json({ error: 'No pudimos entregar el aviso. Vuelve a activar los avisos en este celular.' });
+    if (r.sinSuscripcion) return res.status(400).json({ error: 'No hay avisos activos en ningún dispositivo. Primero toca "Activar avisos en este dispositivo".' });
+    if (!r.ok) return res.status(502).json({ error: 'No pudimos entregar el aviso. Vuelve a activar los avisos en este dispositivo.' });
     res.json({ ok: true });
   } catch (err) {
     next(err);

@@ -1,7 +1,7 @@
 // npm run test:avisos — simula evaluaciones próximas y verifica que:
 //  • cada aviso sale UNA sola vez por canal, aunque el cron corra varias veces o en paralelo;
 //  • si el push falla (410 u otro error), sale el correo de respaldo en el mismo ciclo;
-//  • "también por correo", "solo los que sigo" y las anticipaciones (incluido el cambio de horario) funcionan.
+//  • todos reciben avisos de todos; "también por correo" y las anticipaciones (incluido el cambio de horario) funcionan.
 // No envía nada real: push y correo se reemplazan por transportes falsos.
 // Usa una base de pruebas que se BORRA en cada ejecución (por defecto la local de `npm run db:local`).
 const { execSync } = require('node:child_process');
@@ -170,16 +170,21 @@ test('si el proveedor de correo falla, se reintenta en el siguiente ciclo y sale
   assert.equal(correosPara(o).length, 1);
 });
 
-test('"solo los que sigo": no avisa por jóvenes que no sigue', async () => {
+test('sin distinciones: cada orante recibe el aviso de cada joven', async () => {
   const camila = await joven('Camila');
   const diego = await joven('Diego');
-  const o = await orante({ push: 'ok', seguir: 'LISTA', jovenesSeguidos: { connect: { id: camila.id } } });
+  const o1 = await orante({ push: 'ok' });
+  const o2 = await orante({ push: 'ok' });
   const fecha = new Date(Date.now() + 40 * 60 * 1000);
   await evaluacion(camila, fecha);
   await evaluacion(diego, fecha);
   await avisos.enviarAvisosPendientes({ ahora: new Date() });
-  assert.equal(pushesPara(o).length, 1);
-  assert.match(pushesPara(o)[0].payload.body, /Camila/);
+  for (const o of [o1, o2]) {
+    const cuerpos = pushesPara(o).map((p) => p.payload.body).join(' | ');
+    assert.equal(pushesPara(o).length, 2);
+    assert.match(cuerpos, /Camila/);
+    assert.match(cuerpos, /Diego/);
+  }
 });
 
 test('respeta la anticipación: 3 horas no avisa a las 3 h 10 min, sí a las 2 h 50 min', async () => {

@@ -84,7 +84,7 @@ export async function desactivar() {
   await sub.unsubscribe();
 }
 
-// Al abrir la app: si este celular ya tiene permiso y suscripción, se la recordamos al servidor
+// Al abrir la app: si este dispositivo ya tiene permiso y suscripción, se la recordamos al servidor
 // (repara suscripciones marcadas como inactivas o renovadas por el navegador).
 export async function sincronizar() {
   try {

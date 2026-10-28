@@ -41,10 +41,6 @@ enum Anticipacion {
   NOCHE_ANTERIOR_20H
 }
 
-enum Seguir {
-  TODOS
-  LISTA
-}
 
 enum TipoAviso {
   ANTES
@@ -85,7 +81,6 @@ model User {
   pushSubs         PushSubscription[]
   oraciones        PrayerLog[]
   avisos           NotificationLog[]
-  seguidoPor       NotificationPrefs[] @relation("JovenesSeguidos")
   codigosCreados   InviteCode[]
   dispositivos     DeviceToken[]
 }
@@ -129,8 +124,6 @@ model NotificationPrefs {
   pushDespues     Boolean      @default(true)
   tambienCorreo   Boolean      @default(false)
   anticipacion    Anticipacion @default(UNA_HORA)
-  seguir          Seguir       @default(TODOS)
-  jovenesSeguidos User[]       @relation("JovenesSeguidos")
   // Lo marca el chequeo diario cuando el push de este usuario no responde bien
   pushNecesitaReactivar Boolean @default(false)
 

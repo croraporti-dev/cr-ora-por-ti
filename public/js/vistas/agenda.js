@@ -1,5 +1,5 @@
 // Agenda de oración (orantes y líder).
-import { api, memoria } from '../api.js';
+import { api } from '../api.js';
 import { pintar, esc, avisar } from '../ui.js';
 import { TIPOS, ANIMOS } from '../textos.js';
 import { grupo, partesChile, cuando } from '../fechas.js';
@@ -20,10 +20,7 @@ function tarjeta(e, user) {
     : '';
   return `
     <article class="tarjeta evaluacion" id="ev-${esc(e.id)}" data-id="${esc(e.id)}">
-      <div class="ev-cabecera">
-        <strong class="ev-nombre">${esc(e.joven.nombre)}</strong>
-        <button class="seguir ${e.sigo ? 'activo' : ''}" data-accion="seguir" aria-pressed="${e.sigo}">${e.sigo ? 'Siguiendo' : 'Seguir'}</button>
-      </div>
+      <strong class="ev-nombre">${esc(e.joven.nombre)}</strong>
       <div class="ev-titulo">${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(hora)}${pasada && !e.resultadoAnimo ? ' · ya pasó' : ''}</div>
       <div class="ev-pie">
@@ -34,50 +31,36 @@ function tarjeta(e, user) {
     </article>`;
 }
 
-// Aviso al abrir la app si los avisos del celular fallaron o nunca se activaron.
+// Aviso al abrir la app si los avisos del dispositivo fallaron o nunca se activaron.
 function bannerAvisos(avisos) {
   if (!avisos) return '';
   if (avisos.necesitaReactivar) {
-    return `<a class="banner mal" href="#/ajustes?reactivar=1"><span>Tus avisos dejaron de llegar al celular. <strong>Toca aquí para reactivarlos.</strong></span></a>`;
+    return `<a class="banner mal" href="#/ajustes?reactivar=1"><span>Tus avisos dejaron de llegar a este dispositivo. <strong>Toca aquí para reactivarlos.</strong></span></a>`;
   }
   if (avisos.quierePush && !avisos.pushActivas) {
-    return `<a class="banner" href="#/ajustes?reactivar=1"><span>Activa los avisos en tu celular para saber cuándo orar. <strong>Activar</strong></span></a>`;
+    return `<a class="banner" href="#/ajustes?reactivar=1"><span>Activa los avisos en este dispositivo para saber cuándo orar. <strong>Activar</strong></span></a>`;
   }
   return '';
 }
 
 export async function vistaAgenda({ user, params, avisos }) {
-  const soloSeguidos = memoria.leer('cr_filtro') === 'seguidos';
   const vista = pintar(`
     ${bannerAvisos(avisos)}
     <h1>Agenda de oración</h1>
-    <div class="pestanas" role="tablist">
-      <button role="tab" data-filtro="todos" aria-selected="${!soloSeguidos}">Todos</button>
-      <button role="tab" data-filtro="seguidos" aria-selected="${soloSeguidos}">Solo los que sigo</button>
-    </div>
     <div id="lista"><p class="cargando">Cargando…</p></div>
   `);
-
-  vista.querySelectorAll('[data-filtro]').forEach((b) =>
-    b.addEventListener('click', () => {
-      memoria.guardar('cr_filtro', b.dataset.filtro);
-      vistaAgenda({ user, params, avisos });
-    })
-  );
 
   const lista = vista.querySelector('#lista');
   let evaluaciones;
   try {
-    ({ evaluaciones } = await api(`/agenda${soloSeguidos ? '?seguidos=1' : ''}`));
+    ({ evaluaciones } = await api('/agenda'));
   } catch (err) {
     lista.innerHTML = `<p class="error">${esc(err.message)}</p>`;
     return;
   }
 
   if (!evaluaciones.length) {
-    lista.innerHTML = `<p class="vacio">${soloSeguidos
-      ? 'No hay evaluaciones de los jóvenes que sigues. Toca «Seguir» en una tarjeta para seguir a alguien.'
-      : 'Por ahora no hay evaluaciones anotadas.'}</p>`;
+    lista.innerHTML = '<p class="vacio">Por ahora no hay evaluaciones anotadas.</p>';
     return;
   }
 
@@ -108,14 +91,6 @@ export async function vistaAgenda({ user, params, avisos }) {
         Object.assign(e, { yoOre: r.yoOre, oraciones: r.oraciones });
         repintar(e);
         if (r.yoOre) avisar('Gracias por orar');
-      } else if (boton.dataset.accion === 'seguir') {
-        const r = await api(`/agenda/seguir/${e.joven.id}`, { metodo: e.sigo ? 'DELETE' : 'POST' });
-        // Actualiza todas las tarjetas de ese joven.
-        evaluaciones.filter((x) => x.joven.id === e.joven.id).forEach((x) => {
-          x.sigo = r.sigo;
-          repintar(x);
-        });
-        avisar(r.sigo ? `Ahora sigues a ${e.joven.nombre}` : `Dejaste de seguir a ${e.joven.nombre}`);
       } else if (boton.dataset.accion === 'quitar') {
         if (!confirm(`¿Quitar la evaluación de ${e.joven.nombre}? Úsalo para entradas falsas o repetidas.`)) return;
         await api(`/lider/evaluaciones/${e.id}`, { metodo: 'DELETE' });

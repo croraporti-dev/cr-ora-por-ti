@@ -94,12 +94,12 @@ function correoAviso({ asunto, texto, push }, { reactivar = false } = {}) {
   const enlace = `${config.appUrl}${push.url}`;
   const enlaceReactivar = `${config.appUrl}/#/ajustes?reactivar=1`;
   const notaReactivar = reactivar
-    ? `<p style="font-size:14px;background:#fff7ed;border-radius:8px;padding:10px 12px">Te escribimos por correo porque los avisos de tu celular no están funcionando.
+    ? `<p style="font-size:14px;background:#fff7ed;border-radius:8px;padding:10px 12px">Te escribimos por correo porque los avisos de tu dispositivo no están funcionando.
        <a href="${escapar(enlaceReactivar)}">Toca aquí para reactivarlos</a>.</p>`
     : '';
   return {
     subject: asunto,
-    text: `${texto}\n\nVer en la agenda: ${enlace}${reactivar ? `\n\nLos avisos de tu celular no están funcionando. Reactívalos aquí: ${enlaceReactivar}` : ''}`,
+    text: `${texto}\n\nVer en la agenda: ${enlace}${reactivar ? `\n\nLos avisos de tu dispositivo no están funcionando. Reactívalos aquí: ${enlaceReactivar}` : ''}`,
     html: envolver(`<p>${escapar(texto)}</p><p>${boton(enlace, 'Ver en la agenda')}</p>${notaReactivar}`)
   };
 }

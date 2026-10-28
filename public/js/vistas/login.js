@@ -1,17 +1,16 @@
 import { api, memoria } from '../api.js';
 import { pintar, conCarga, esc } from '../ui.js';
 
-const AVISO_PRIVACIDAD = `Solo guardamos el <strong>ramo, el tipo, la fecha y la hora</strong> de tus pruebas y trabajos,
-para que un pequeño grupo de la iglesia ore por ti. <strong>Nunca</strong> guardamos notas ni calificaciones.
-Puedes borrar tus evaluaciones cuando quieras.`;
+const AVISO_PRIVACIDAD = `Verás los nombres y las fechas de evaluación de los jóvenes, y algunos son menores de edad.
+Úsalo solo para orar por ellos y <strong>no compartas esta información</strong> fuera del grupo.`;
 
 export function vistaLogin({ irA, pestana = 'entrar' }) {
   const vista = pintar(`
-    <h1>Te acompañamos en oración</h1>
-    <p class="sub">Registra tus pruebas y trabajos, y un grupo de la iglesia orará por ti.</p>
+    <h1>Entrar para orar</h1>
+    <p class="sub">Para orantes y la líder. ¿Eres joven? <a href="#/mis">Anota tu prueba aquí</a>, sin cuenta.</p>
     <div class="pestanas" role="tablist">
       <button role="tab" data-pestana="entrar" aria-selected="${pestana === 'entrar'}">Entrar</button>
-      <button role="tab" data-pestana="registro" aria-selected="${pestana === 'registro'}">Soy nuevo/a</button>
+      <button role="tab" data-pestana="registro" aria-selected="${pestana === 'registro'}">Quiero sumarme</button>
     </div>
 
     <form id="f-entrar" class="tarjeta" ${pestana === 'entrar' ? '' : 'hidden'} novalidate>
@@ -29,17 +28,12 @@ export function vistaLogin({ irA, pestana = 'entrar' }) {
         <input type="text" name="nombre" autocomplete="given-name" maxlength="40" required></label>
       <label class="campo"><span>Tu correo</span>
         <input type="email" name="email" autocomplete="email" inputmode="email" required></label>
-      <span class="campo" style="margin-bottom:6px"><span>¿Cómo quieres participar?</span></span>
-      <div class="opciones">
-        <label class="opcion"><input type="radio" name="rol" value="JOVEN" checked><span>📚 Soy joven</span></label>
-        <label class="opcion"><input type="radio" name="rol" value="ORANTE"><span>🙏 Quiero orar</span></label>
-      </div>
       <div class="aviso-privacidad">${AVISO_PRIVACIDAD}</div>
-      <label class="check"><input type="checkbox" name="aceptaAviso"><span>Leí y acepto el aviso.</span></label>
+      <label class="check"><input type="checkbox" name="aceptaAviso"><span>Me comprometo a cuidar esta información.</span></label>
       <label class="check"><input type="checkbox" name="esMenor"><span>Soy menor de 18 años.</span></label>
       <label class="check" id="c-apoderado" hidden><input type="checkbox" name="apoderado"><span>Mi apoderado está en conocimiento de que uso esta app.</span></label>
       <p class="error" hidden></p>
-      <button class="btn bloque">Registrarme</button>
+      <button class="btn bloque">Sumarme al grupo de oración</button>
     </form>
   `);
 
@@ -74,7 +68,6 @@ export function vistaLogin({ irA, pestana = 'entrar' }) {
       codigoInvitacion: f.codigoInvitacion.value,
       nombre: f.nombre.value,
       email: f.email.value.trim(),
-      rol: f.rol.value,
       aceptaAviso: f.aceptaAviso.checked,
       esMenor: f.esMenor.checked,
       apoderado: f.apoderado.checked

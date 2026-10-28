@@ -42,7 +42,8 @@ router.post('/solicitar', limitarPorIp('auth-solicitar', 10, 15 * 60), async (re
       }
       registro = {
         nombre: v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 }),
-        rol: v.opcion(req.body.rol, ['JOVEN', 'ORANTE'], 'rol'),
+        // Con correo solo se registran orantes; los jóvenes usan el formulario sin sesión.
+        rol: 'ORANTE',
         esMenor,
         apoderado: esMenor
       };

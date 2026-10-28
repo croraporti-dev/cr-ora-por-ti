@@ -32,9 +32,20 @@ router.get('/miembros', async (req, res, next) => {
   try {
     const miembros = await prisma.user.findMany({
       orderBy: [{ rol: 'asc' }, { nombre: 'asc' }],
-      select: { id: true, nombre: true, email: true, rol: true, esMenor: true, createdAt: true }
+      select: { id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, esMenor: true, createdAt: true }
     });
     res.json({ miembros });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/lider/evaluaciones/:id — la líder puede borrar cualquier evaluación (p. ej. una falsa)
+router.delete('/evaluaciones/:id', async (req, res, next) => {
+  try {
+    const r = await prisma.evaluation.deleteMany({ where: { id: req.params.id } });
+    if (!r.count) return res.status(404).json({ error: 'Esa evaluación ya no existe.' });
+    res.json({ ok: true });
   } catch (err) {
     next(err);
   }

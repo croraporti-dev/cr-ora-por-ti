@@ -62,10 +62,15 @@ enum EstadoEnvio {
   FALLO
 }
 
+// Orantes y líder entran con correo. Los jóvenes NO inician sesión: se identifican
+// con nombre, apellido y teléfono, y su celular queda recordado (DeviceToken).
 model User {
   id             String   @id @default(cuid())
-  email          String   @unique
+  email          String?  @unique
   nombre         String
+  apellido       String?
+  // Formato +569XXXXXXXX. Solo lo ve la líder.
+  telefono       String?  @unique
   rol            Rol      @default(ORANTE)
   createdAt      DateTime @default(now())
   // Consentimiento al registrarse
@@ -82,6 +87,20 @@ model User {
   avisos           NotificationLog[]
   seguidoPor       NotificationPrefs[] @relation("JovenesSeguidos")
   codigosCreados   InviteCode[]
+  dispositivos     DeviceToken[]
+}
+
+// Recuerda al joven en su celular (cookie httpOnly de larga duración). Solo se guarda el hash.
+model DeviceToken {
+  id         String   @id @default(cuid())
+  userId     String
+  tokenHash  String   @unique
+  createdAt  DateTime @default(now())
+  lastUsedAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Evaluation {

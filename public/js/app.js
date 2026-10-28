@@ -1,24 +1,32 @@
 import { api } from './api.js';
 import { esc } from './ui.js';
 import { vistaLogin, vistaCodigo, vistaEnlace } from './vistas/login.js';
-import { vistaInicio, vistaLider } from './vistas/inicio.js';
+import { vistaBienvenida, vistaMis } from './vistas/joven.js';
+import { vistaAgenda } from './vistas/agenda.js';
+import { vistaLider } from './vistas/lider.js';
 
 const estado = { user: null };
 
+// Rutas abiertas: el joven no inicia sesión.
 const PUBLICAS = {
+  '/bienvenida': vistaBienvenida,
+  '/mis': vistaMis,
   '/login': (ctx) => vistaLogin({ ...ctx, pestana: 'entrar' }),
   '/registro': (ctx) => vistaLogin({ ...ctx, pestana: 'registro' }),
   '/codigo': vistaCodigo,
   '/entrar': vistaEnlace
 };
+// Login y registro no tienen sentido con sesión iniciada.
+const SOLO_SIN_SESION = ['/login', '/registro', '/codigo'];
 
+// Requieren sesión (orantes y líder).
 const PRIVADAS = {
-  '/': vistaInicio,
-  '/lider': vistaLider
+  '/agenda': { vista: vistaAgenda },
+  '/lider': { vista: vistaLider, roles: ['LIDER'] }
 };
 
 const MENU = [
-  { ruta: '#/', texto: 'Agenda' },
+  { ruta: '#/agenda', texto: 'Agenda' },
   { ruta: '#/lider', texto: 'Líder', roles: ['LIDER'] },
   { ruta: '#/salir', texto: 'Salir' }
 ];
@@ -49,27 +57,31 @@ async function render() {
     user: estado.user,
     alEntrar(user) {
       estado.user = user;
-      irA('#/');
+      irA('#/agenda');
     }
   };
 
   if (ruta === '/salir') {
     await api('/auth/salir', { metodo: 'POST' }).catch(() => {});
     estado.user = null;
-    return irA('#/login');
+    return irA('#/bienvenida');
   }
 
+  // Inicio: orantes y líder van a la agenda; los demás a la bienvenida.
+  if (ruta === '/') return irA(estado.user ? '#/agenda' : '#/bienvenida');
+
   if (PUBLICAS[ruta]) {
-    // Si ya hay sesión, el login no tiene sentido (salvo el enlace mágico, que puede cambiar de cuenta).
-    if (estado.user && ruta !== '/entrar') return irA('#/');
+    if (estado.user && SOLO_SIN_SESION.includes(ruta)) return irA('#/agenda');
     pintarMenu(ruta);
     return PUBLICAS[ruta](ctx);
   }
 
+  const privada = PRIVADAS[ruta];
+  if (!privada) return irA('#/');
   if (!estado.user) return irA('#/login');
+  if (privada.roles && !privada.roles.includes(estado.user.rol)) return irA('#/agenda');
   pintarMenu(ruta);
-  const vista = PRIVADAS[ruta] || PRIVADAS['/'];
-  await vista(ctx);
+  await privada.vista(ctx);
   document.getElementById('vista').focus({ preventScroll: true });
 }
 

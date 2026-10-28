@@ -33,6 +33,8 @@ app.use('/api', (req, res, next) => {
 app.use('/api', cargarUsuario);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/yo', require('./routes/yo'));
+app.use('/api/joven', require('./routes/joven'));
+app.use('/api/agenda', require('./routes/agenda'));
 app.use('/api/lider', require('./routes/lider'));
 
 app.use('/api', (req, res) => res.status(404).json({ error: 'No encontrado.' }));
@@ -44,7 +46,8 @@ app.use(express.static(path.join(__dirname, '..', 'public'), { extensions: ['htm
 app.use((err, req, res, next) => {
   if (err.status && err.status < 500) return res.status(err.status).json({ error: err.message });
   // Solo el mensaje técnico, nunca el cuerpo de la petición (puede traer correos o códigos).
-  console.error(`[error] ${req.method} ${req.path}:`, err.message);
+  const resumen = String(err.message || '').trim().split('\n').pop() || err.name;
+  console.error(`[error] ${req.method} ${req.path}: ${err.code ? `${err.code} ` : ''}${resumen}`);
   res.status(500).json({ error: 'Algo falló de nuestro lado. Inténtalo de nuevo en un momento.' });
 });
 

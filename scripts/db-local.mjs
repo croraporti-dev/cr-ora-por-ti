@@ -10,7 +10,15 @@ const raiz = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const databaseDir = path.join(raiz, '.pgdata');
 const nueva = !existsSync(databaseDir);
 
-const pg = new EmbeddedPostgres({ databaseDir, user: 'postgres', password: 'local', port: 54329, persistent: true });
+const pg = new EmbeddedPostgres({
+  databaseDir,
+  user: 'postgres',
+  password: 'local',
+  port: 54329,
+  persistent: true,
+  // En Windows initdb usaría WIN1252; Supabase usa UTF-8 y aquí debe ser igual (tildes, ñ).
+  initdbFlags: ['--encoding=UTF8', '--locale=C']
+});
 
 if (nueva) await pg.initialise();
 await pg.start();

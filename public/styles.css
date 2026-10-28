@@ -126,4 +126,32 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
   font-weight: 600; max-width: calc(100% - 32px); box-shadow: var(--shadow); z-index: 50;
 }
 
+/* Formulario de evaluación */
+.opciones.cuatro { grid-template-columns: 1fr 1fr; }
+.fila { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
+.vacio { color: var(--text-muted); text-align: center; padding: 20px 8px; }
+
+/* Tarjetas de evaluación */
+.evaluacion { padding: 16px 18px; scroll-margin-top: 80px; }
+.ev-cabecera { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.ev-nombre { font-size: 1.1rem; }
+.ev-titulo { font-weight: 600; margin-top: 2px; }
+.ev-cuando { color: var(--text-muted); font-size: 0.9rem; margin-top: 2px; }
+.ev-pie { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
+.ev-pie .btn { min-height: 46px; padding: 10px 16px; flex-shrink: 0; }
+.oraron { color: var(--text-muted); font-size: 0.9rem; }
+.btn.orar { background: var(--calido); color: #fff; }
+.btn.orar:hover { background: #d97706; }
+.estrella { border: none; background: none; font-size: 1.5rem; line-height: 1; color: var(--calido); cursor: pointer; padding: 4px 6px; }
+.etiqueta {
+  display: inline-block; font-size: 0.8rem; font-weight: 600; padding: 2px 8px; border-radius: 999px;
+  background: var(--success-light); color: var(--success); vertical-align: middle;
+}
+.etiqueta.urgente { background: var(--calido-light); color: #b45309; }
+.acciones { display: flex; gap: 4px; margin-top: 6px; margin-left: -10px; }
+.peligro-texto { color: var(--danger) !important; }
+.tarjeta.destacada { border: 2px solid var(--calido); background: var(--calido-light); }
+.tarjeta.resaltada { border: 2px solid var(--primary); box-shadow: 0 0 0 4px var(--primary-light); }
+.animos { display: grid; gap: 8px; }
+
 [hidden] { display: none !important; }

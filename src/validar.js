@@ -24,4 +24,13 @@ function opcion(valor, permitidas, nombre) {
   return valor;
 }
 
-module.exports = { ErrorValidacion, email, texto, opcion };
+// Celular chileno → +569XXXXXXXX. Acepta "9 1234 5678", "+56 9 1234 5678", "56912345678".
+function telefono(valor) {
+  let d = String(valor || '').replace(/\D/g, '');
+  if (d.startsWith('56')) d = d.slice(2);
+  if (d.length === 8) d = `9${d}`;
+  if (!/^9\d{8}$/.test(d)) throw new ErrorValidacion('Revisa tu número de celular (ejemplo: 9 1234 5678).');
+  return `+56${d}`;
+}
+
+module.exports = { ErrorValidacion, email, texto, opcion, telefono };

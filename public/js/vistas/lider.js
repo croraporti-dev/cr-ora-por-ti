@@ -1,14 +1,5 @@
 import { api } from '../api.js';
-import { pintar, esc, conCarga, avisar, NOMBRE_ROL } from '../ui.js';
-
-// Pantalla provisoria de la Etapa 1: la agenda llega en la Etapa 2.
-export function vistaInicio({ user }) {
-  pintar(`
-    <h1>Hola, ${esc(user.nombre)} 👋</h1>
-    <p class="sub">Entraste como <strong>${NOMBRE_ROL[user.rol]}</strong>.</p>
-    <div class="tarjeta"><p>Pronto verás aquí la agenda de oración.</p></div>
-  `);
-}
+import { pintar, conCarga, avisar } from '../ui.js';
 
 export async function vistaLider() {
   const vista = pintar(`

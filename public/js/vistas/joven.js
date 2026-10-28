@@ -90,7 +90,8 @@ function tarjetaAnimo(e) {
 }
 
 function tarjetaMia(e) {
-  const oraron = e.oraciones ? `<p class="oraron">${e.oraciones === 1 ? '1 persona oró' : `${e.oraciones} personas oraron`} por ti</p>` : '';
+  // Sin cifras: solo se muestra cuando ya hay alguien orando.
+  const oraron = e.oraciones ? '<p class="oraron">Ya están orando por ti</p>' : '';
   const animo = e.resultadoAnimo ? `<span class="etiqueta">${ANIMOS[e.resultadoAnimo].texto}</span>` : '';
   return `
     <div class="tarjeta evaluacion" data-id="${esc(e.id)}">

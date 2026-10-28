@@ -24,7 +24,7 @@ function tarjeta(e, user) {
       <div class="ev-titulo">${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(hora)}${pasada && !e.resultadoAnimo ? ' · ya pasó' : ''}</div>
       <div class="ev-pie">
-        <span class="oraron" data-contador>${e.oraciones ? `${e.oraciones} ${e.oraciones === 1 ? 'persona oró' : 'personas oraron'}` : 'Nadie ha orado aún'}</span>
+        <span class="oraron">${e.oraciones ? `Ya están orando por ${esc(e.joven.nombre)}` : ''}</span>
         <button class="btn ${e.yoOre ? 'secundario' : 'orar'}" data-accion="orar" aria-pressed="${e.yoOre}">${e.yoOre ? 'Oraste' : 'Ya oré'}</button>
       </div>
       ${user.rol === 'LIDER' ? '<button class="btn texto peligro-texto chico" data-accion="quitar">Quitar evaluación</button>' : ''}

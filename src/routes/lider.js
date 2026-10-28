@@ -1,11 +1,55 @@
+// Panel de la líder: resumen de la semana, código de invitación y administración de miembros.
 const express = require('express');
 const prisma = require('../db');
 const { requiereRol } = require('../middleware/auth');
 const invitacion = require('../services/invitacion');
+const { nombreVisible } = require('../services/evaluaciones');
+const { ahoraLocal } = require('../services/tiempo');
 const v = require('../validar');
 
 const router = express.Router();
 router.use(requiereRol('LIDER'));
+
+// GET /api/lider/resumen — la semana actual (lunes a domingo, hora de Chile)
+router.get('/resumen', async (req, res, next) => {
+  try {
+    const ahora = ahoraLocal();
+    const inicio = ahora.startOf('week'); // lunes 00:00
+    const fin = inicio.plus({ weeks: 1 });
+    const enLaSemana = { gte: inicio.toJSDate(), lt: fin.toJSDate() };
+
+    const [evaluaciones, oraciones, pidieron, avisos, orantes] = await Promise.all([
+      prisma.evaluation.findMany({ where: { fechaHora: enLaSemana }, select: { userId: true, fechaHora: true } }),
+      prisma.prayerLog.count({ where: { createdAt: enLaSemana } }),
+      prisma.evaluation.findMany({
+        where: { resultadoAnimo: 'NECESITA_ORACION', fechaHora: { gte: ahora.minus({ days: 7 }).toJSDate() } },
+        include: { user: { select: { nombre: true, apellido: true } } },
+        orderBy: { fechaHora: 'desc' }
+      }),
+      prisma.notificationLog.groupBy({ by: ['canal'], where: { estado: 'OK', sentAt: enLaSemana }, _count: true }),
+      prisma.user.findMany({
+        where: { rol: { in: ['ORANTE', 'LIDER'] } },
+        select: { _count: { select: { pushSubs: { where: { activa: true } } } } }
+      })
+    ]);
+
+    const porCanal = Object.fromEntries(avisos.map((a) => [a.canal, a._count]));
+    res.json({
+      semana: { desde: inicio.toFormat('dd/MM/yyyy'), hasta: fin.minus({ days: 1 }).toFormat('dd/MM/yyyy') },
+      evaluaciones: evaluaciones.length,
+      evaluacionesPendientes: evaluaciones.filter((e) => e.fechaHora > new Date()).length,
+      jovenes: new Set(evaluaciones.map((e) => e.userId)).size,
+      oraciones,
+      pidieronOracion: [...new Set(pidieron.map((e) => nombreVisible(e.user)))],
+      avisosPush: porCanal.PUSH || 0,
+      avisosCorreo: porCanal.EMAIL || 0,
+      orantes: orantes.length,
+      orantesConPush: orantes.filter((o) => o._count.pushSubs > 0).length
+    });
+  } catch (err) {
+    next(err);
+  }
+});
 
 // GET /api/lider/invitacion — código vigente
 router.get('/invitacion', async (req, res, next) => {
@@ -27,14 +71,20 @@ router.post('/invitacion', async (req, res, next) => {
   }
 });
 
-// GET /api/lider/miembros
+// GET /api/lider/miembros — con cuántas evaluaciones tiene cada joven y si cada orante tiene avisos activos
 router.get('/miembros', async (req, res, next) => {
   try {
     const miembros = await prisma.user.findMany({
       orderBy: [{ rol: 'asc' }, { nombre: 'asc' }],
-      select: { id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, esMenor: true, createdAt: true }
+      select: {
+        id: true, nombre: true, apellido: true, email: true, telefono: true, rol: true, esMenor: true, createdAt: true,
+        _count: { select: { evaluaciones: true, pushSubs: { where: { activa: true } } } }
+      }
     });
-    res.json({ miembros });
+    res.json({
+      yo: req.user.id,
+      miembros: miembros.map(({ _count, ...m }) => ({ ...m, evaluaciones: _count.evaluaciones, avisosActivos: _count.pushSubs > 0 }))
+    });
   } catch (err) {
     next(err);
   }
@@ -51,14 +101,16 @@ router.delete('/evaluaciones/:id', async (req, res, next) => {
   }
 });
 
-// PATCH /api/lider/miembros/:id — { rol }
+// PATCH /api/lider/miembros/:id — { rol: ORANTE | LIDER }. Los jóvenes se registran solos y no tienen correo,
+// así que no se convierten en orantes (ni al revés).
 router.patch('/miembros/:id', async (req, res, next) => {
   try {
-    const rol = v.opcion(req.body.rol, ['JOVEN', 'ORANTE', 'LIDER'], 'rol');
+    const rol = v.opcion(req.body.rol, ['ORANTE', 'LIDER'], 'rol');
     const miembro = await prisma.user.findUnique({ where: { id: req.params.id } });
     if (!miembro) return res.status(404).json({ error: 'No encontramos a esa persona.' });
+    if (miembro.rol === 'JOVEN') return res.status(400).json({ error: 'Los jóvenes no cambian de rol: para orar, deben sumarse con su correo.' });
     if (miembro.rol === 'LIDER' && rol !== 'LIDER' && (await prisma.user.count({ where: { rol: 'LIDER' } })) <= 1) {
-      return res.status(400).json({ error: 'Debe quedar al menos una líder en el grupo.' });
+      return res.status(400).json({ error: 'Debe quedar al menos una persona con rol de líder.' });
     }
     const actualizado = await prisma.user.update({ where: { id: miembro.id }, data: { rol } });
     res.json({ ok: true, rol: actualizado.rol });
@@ -67,10 +119,10 @@ router.patch('/miembros/:id', async (req, res, next) => {
   }
 });
 
-// DELETE /api/lider/miembros/:id — quita al usuario y todos sus datos
+// DELETE /api/lider/miembros/:id — quita al usuario y todos sus datos (evaluaciones, oraciones, avisos)
 router.delete('/miembros/:id', async (req, res, next) => {
   try {
-    if (req.params.id === req.user.id) return res.status(400).json({ error: 'No puedes quitarte a ti misma del grupo.' });
+    if (req.params.id === req.user.id) return res.status(400).json({ error: 'No puedes quitar tu propia cuenta.' });
     const borrados = await prisma.user.deleteMany({ where: { id: req.params.id } });
     if (!borrados.count) return res.status(404).json({ error: 'No encontramos a esa persona.' });
     res.json({ ok: true });

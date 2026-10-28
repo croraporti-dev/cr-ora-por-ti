@@ -5,7 +5,7 @@ ore por ellos antes y converse con ellos después. Avisos por **push** (principa
 
 Stack: Node.js + Express 5, Prisma 7 (adapter-pg), PostgreSQL en Supabase, Vercel. Frontend vanilla sin build.
 
-> Este README se completa por etapas. Estado actual: **Etapa 4** (PWA instalable + Web Push), pendiente de la prueba en el celular de la líder.
+> Estado actual: Etapas 1 a 5 construidas. Falta desplegar y la prueba en el celular de la líder (cierre de la Etapa 4).
 
 ## Desarrollo local
 
@@ -90,6 +90,22 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 - La líder puede quitar cualquier evaluación (por ejemplo, una falsa).
 - `#/agenda?ev=ID` abre y resalta una tarjeta (lo usarán las notificaciones).
 - Todo se muestra en hora de Chile, aunque el celular esté configurado en otra zona.
+
+## Panel de la líder
+
+Menú «Líder» (solo rol LIDER):
+- **Esta semana** (lunes a domingo):
+  - evaluaciones, cuántas faltan y cuántos jóvenes las tienen;
+  - oraciones registradas;
+  - avisos enviados por push y por correo;
+  - cuántos orantes tienen avisos activos;
+  - quién pidió oración en los últimos 7 días.
+- **Código de invitación** para nuevos orantes: copiar o generar uno nuevo (el anterior deja de servir).
+- **Miembros**, agrupados en líderes, orantes y jóvenes:
+  - Jóvenes: celular, si es menor de edad y cuántas evaluaciones tiene, con un enlace a WhatsApp para escribirle fuera de la app.
+  - Orantes: correo y si tiene avisos activos o los recibe por correo.
+  - Cambiar el rol entre Orante y Líder. Siempre debe quedar al menos una persona con rol de líder. Los jóvenes no cambian de rol.
+  - Quitar a alguien borra sus datos, incluidas sus evaluaciones. Nadie puede quitar su propia cuenta.
 
 ## Avisos
 

@@ -173,6 +173,22 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .estado-push.mal { background: var(--calido-light); color: #b45309; }
 .check input[type=radio] { accent-color: var(--primary); }
 
+/* Panel de la líder */
+.cifras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.cifra { background: var(--background); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; }
+.cifra strong { font-size: 1.6rem; line-height: 1.1; color: var(--primary); }
+.cifra span { font-size: 0.85rem; font-weight: 600; }
+.cifra small { font-size: 0.75rem; color: var(--text-muted); }
+.pidieron { background: var(--calido-light); color: #b45309; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 0.9rem; }
+h3 { font-size: 1rem; margin: 18px 0 8px; }
+.miembros { list-style: none; }
+.miembro { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
+.miembro-datos { display: flex; flex-direction: column; min-width: 0; }
+.miembro-datos .chico { overflow-wrap: anywhere; }
+.miembro-acciones { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.miembro-acciones select { width: auto; padding: 6px 8px; font-size: 0.85rem; }
+.miembro-acciones .btn.texto { padding: 6px 8px; font-size: 0.85rem; }
+
 /* Avisos y guía de iPhone */
 .banner {
   display: flex; gap: 10px; align-items: flex-start; text-decoration: none; color: var(--primary);

@@ -40,7 +40,7 @@ const PRIVADAS = {
 const MENU = [
   { ruta: '#/agenda', texto: 'Agenda' },
   { ruta: '#/ajustes', texto: 'Ajustes' },
-  { ruta: '#/lider', texto: 'Líder', roles: ['LIDER'] },
+  { ruta: '#/lider', texto: 'Grupo', roles: ['LIDER'] },
   { ruta: '#/salir', texto: 'Salir' }
 ];
 

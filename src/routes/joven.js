@@ -44,7 +44,7 @@ router.post('/perfil', limitarPorIp('joven-perfil', 100, 60 * 60), async (req, r
     const consentimiento = { esMenor, aceptoAvisoAt: ahora, apoderadoAt: esMenor ? ahora : null };
     const existente = await prisma.user.findUnique({ where: { telefono } });
     if (existente && existente.rol !== 'JOVEN') {
-      throw new v.ErrorValidacion('Ese número ya está registrado en el grupo. Pídele ayuda a la líder.');
+      throw new v.ErrorValidacion('Ese número ya está registrado en el grupo como orante. Usa otro número.');
     }
     // Mismo número = mismo joven (por ejemplo, si cambió de celular).
     const joven = existente

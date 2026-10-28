@@ -1,4 +1,4 @@
-// Panel de la líder: resumen de la semana, código de invitación y miembros.
+// Panel de administración (rol líder): resumen de la semana, código de invitación y miembros.
 import { api } from '../api.js';
 import { pintar, esc, conCarga, avisar } from '../ui.js';
 
@@ -68,12 +68,12 @@ async function pintarMiembros(caja) {
 
 export async function vistaLider() {
   const vista = pintar(`
-    <h1>Panel de la líder</h1>
+    <h1>Grupo</h1>
     <div class="tarjeta" id="caja-resumen"><p class="cargando">Cargando…</p></div>
 
     <div class="tarjeta">
       <h2 style="margin-top:0">Código de invitación</h2>
-      <p class="chico">Para que nuevos orantes se sumen. Los jóvenes no lo necesitan. Si el código se filtra, genera uno nuevo: el anterior deja de funcionar.</p>
+      <p class="chico">Compártelo con quien quiera sumarse a orar por los jóvenes. Los jóvenes no lo necesitan para anotar sus pruebas. Si generas uno nuevo, el anterior deja de funcionar.</p>
       <p class="codigo-invitacion" id="codigo">…</p>
       <div style="display:grid;gap:10px">
         <button class="btn secundario" id="copiar">Copiar código</button>

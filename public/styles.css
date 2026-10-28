@@ -173,7 +173,7 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .estado-push.mal { background: var(--calido-light); color: #b45309; }
 .check input[type=radio] { accent-color: var(--primary); }
 
-/* Panel de la líder */
+/* Panel del grupo (rol líder) */
 .cifras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
 .cifra { background: var(--background); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; }
 .cifra strong { font-size: 1.6rem; line-height: 1.1; color: var(--primary); }

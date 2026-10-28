@@ -1,4 +1,4 @@
-// Panel de la líder: resumen de la semana, código de invitación y administración de miembros.
+// Panel del grupo (rol líder): resumen de la semana, código de invitación y administración de miembros.
 const express = require('express');
 const prisma = require('../db');
 const { requiereRol } = require('../middleware/auth');
@@ -90,7 +90,7 @@ router.get('/miembros', async (req, res, next) => {
   }
 });
 
-// DELETE /api/lider/evaluaciones/:id — la líder puede borrar cualquier evaluación (p. ej. una falsa)
+// DELETE /api/lider/evaluaciones/:id — quien tiene rol líder puede borrar cualquier evaluación (p. ej. una falsa)
 router.delete('/evaluaciones/:id', async (req, res, next) => {
   try {
     const r = await prisma.evaluation.deleteMany({ where: { id: req.params.id } });

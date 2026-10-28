@@ -7,7 +7,7 @@ const AVISO_PRIVACIDAD = `Verás los nombres y las fechas de evaluación de los 
 export function vistaLogin({ irA, pestana = 'entrar' }) {
   const vista = pintar(`
     <h1>Entrar para orar</h1>
-    <p class="sub">Para orantes y la líder. ¿Eres joven? <a href="#/mis">Anota tu prueba aquí</a>, sin cuenta.</p>
+    <p class="sub">Para quienes quieren orar por los jóvenes. ¿Eres joven? <a href="#/mis">Anota tu prueba aquí</a>, sin cuenta.</p>
     <div class="pestanas" role="tablist">
       <button role="tab" data-pestana="entrar" aria-selected="${pestana === 'entrar'}">Entrar</button>
       <button role="tab" data-pestana="registro" aria-selected="${pestana === 'registro'}">Quiero sumarme</button>

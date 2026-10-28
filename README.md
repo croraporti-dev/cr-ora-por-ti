@@ -5,7 +5,7 @@ ore por ellos antes y converse con ellos después. Avisos por **push** (principa
 
 Stack: Node.js + Express 5, Prisma 7 (adapter-pg), PostgreSQL en Supabase, Vercel. Frontend vanilla sin build.
 
-> Estado actual: Etapas 1 a 5 construidas. Falta desplegar y la prueba en el celular de la líder (cierre de la Etapa 4).
+> Estado actual: Etapas 1 a 5 construidas. Falta desplegar y probar en un celular real (cierre de la Etapa 4).
 
 ## Desarrollo local
 
@@ -16,7 +16,7 @@ npm install
 cp .env.example .env        # en local basta con DATABASE_URL, DIRECT_URL y MAIL_PROVIDER=consola
 npm run db:local            # Postgres embebido en localhost:54329 (déjalo corriendo en otra terminal)
 npx prisma migrate dev      # crea las tablas
-npm run crear-lider -- tu@correo.cl "Tu Nombre"   # crea la líder y muestra el código de invitación
+npm run crear-lider -- tu@correo.cl "Tu Nombre"   # crea una cuenta con rol líder y muestra el código de invitación
 npm run dev                 # http://localhost:3000
 ```
 
@@ -73,27 +73,27 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 - Su dispositivo queda recordado con una cookie httpOnly de 1 año, así que las siguientes veces solo anotan la evaluación.
 - Solo ven y modifican **sus propias** evaluaciones. No ven la agenda general, por lo que un desconocido que abra el formulario no ve datos de nadie.
 - Mismo número de celular = mismo joven. Si cambia de teléfono, escribe su número otra vez y recupera sus evaluaciones.
-- El celular solo lo ve la líder. Los orantes ven "Camila P.".
+- El celular solo lo ven quienes tienen rol líder. Los orantes ven "Camila P.".
 - "¿Cómo te fue?" se responde en la app con tres botones cuando el joven vuelve a abrirla.
 
 **Orantes (`ORANTE`) y líder (`LIDER`): con correo, sin contraseña.**
 - Cada correo trae un **código de 6 dígitos** y un **enlace mágico** (vencen en 15 min y sirven una sola vez).
 - En **iPhone con la app instalada** hay que escribir el código dentro de la app: el enlace del correo se abre en Safari, que guarda su sesión aparte.
-- Para sumarse como orante se necesita el **código de invitación** que la líder ve (y puede cambiar) en su panel, porque la agenda muestra nombres de menores.
-- Sesión de 30 días en una cookie httpOnly. Si la líder quita a alguien, su sesión deja de valer de inmediato.
+- Para sumarse como orante se necesita el **código de invitación** que se ve (y se puede cambiar) en la pantalla «Grupo», porque la agenda muestra nombres de menores.
+- Sesión de 30 días en una cookie httpOnly. Si se quita a alguien desde «Grupo», su sesión deja de valer de inmediato.
 
 ## Agenda
 
 - Agrupada en Hoy, Mañana, Esta semana (hasta el domingo), Más adelante y Hace poco (últimos 2 días, con el ánimo si el joven respondió).
 - "Ya oré" suma una vez por persona (se puede deshacer). El joven ve cuántas personas oraron por él.
-- Sin distinciones: todos los orantes y la líder ven y reciben avisos de todos los jóvenes.
-- La líder puede quitar cualquier evaluación (por ejemplo, una falsa).
+- Sin distinciones: todos los orantes y líderes ven y reciben avisos de todos los jóvenes.
+- Quienes tienen rol líder pueden quitar cualquier evaluación (por ejemplo, una falsa).
 - `#/agenda?ev=ID` abre y resalta una tarjeta (lo usarán las notificaciones).
 - Todo se muestra en hora de Chile, aunque el celular esté configurado en otra zona.
 
-## Panel de la líder
+## Pantalla «Grupo» (rol líder)
 
-Menú «Líder» (solo rol LIDER):
+Menú «Grupo» (solo rol LIDER):
 - **Esta semana** (lunes a domingo):
   - evaluaciones, cuántas faltan y cuántos jóvenes las tienen;
   - oraciones registradas;
@@ -113,10 +113,10 @@ El push es el canal principal; el correo es el respaldo automático.
 
 | Aviso | A quién | Cuándo |
 |---|---|---|
-| **Antes** | Todos los orantes y la líder | Según la anticipación de cada persona: 1 h, 3 h o la noche anterior a las 20:00 (hora de Chile). Vale hasta la hora de la evaluación. |
-| **Después** | Todos los orantes y la líder | 2 h después de la evaluación (válido por 24 h). Incluye el ánimo si el joven ya respondió. |
+| **Antes** | Todos los orantes y líderes | Según la anticipación de cada persona: 1 h, 3 h o la noche anterior a las 20:00 (hora de Chile). Vale hasta la hora de la evaluación. |
+| **Después** | Todos los orantes y líderes | 2 h después de la evaluación (válido por 24 h). Incluye el ánimo si el joven ya respondió. |
 | **¿Cómo te fue?** | El joven | 2 h después, solo por push con 3 botones (Bien / Más o menos / Necesito oración) que funcionan sin sesión. Si no tiene push, responde en la app. |
-| **Resumen semanal** | La líder | Domingo desde las 20:00, por correo. |
+| **Resumen semanal** | Quienes tienen rol líder | Domingo desde las 20:00, por correo. |
 
 Cómo se elige el canal, por aviso y por persona:
 1. Si quiere push y tiene una suscripción activa → push.
@@ -179,7 +179,7 @@ Simula evaluaciones con push y correo **falsos** (no se envía nada real) y veri
 - todos reciben avisos de todos los jóvenes; "también por correo", la anticipación de 3 h y un cron atrasado;
 - "noche anterior 20:00" en los cambios de horario de abril y septiembre;
 - aviso "después" con el ánimo, push "¿Cómo te fue?" al joven con token firmado, y aviso de nuevo si se cambia la hora;
-- chequeo diario y resumen semanal (una sola vez, solo a la líder).
+- chequeo diario y resumen semanal (una sola vez, solo al rol líder).
 
 Usa la base `cr_ora_test`, que **se borra en cada ejecución**. Para usar otra, define `DATABASE_URL_TEST`; su nombre debe contener "test".
 
@@ -245,7 +245,7 @@ Para que **no caigan en spam**:
   - **DKIM**;
   - **SPF** (`v=spf1 include:spf.brevo.com ~all`, o agrega ese `include` a tu SPF actual);
   - **DMARC** (`v=DMARC1; p=none; rua=mailto:tu-correo`).
-- Pide a la líder y a los orantes que marquen el primer correo como "No es spam" y agreguen el remitente a sus contactos.
+- Pide a quienes reciben avisos que marquen el primer correo como "No es spam" y agreguen el remitente a sus contactos.
 
 **Alternativa, Resend:** exige un dominio verificado desde el principio (registros SPF y DKIM en tu DNS; plan gratis de 3.000 correos al mes). Variables: `MAIL_PROVIDER=resend` y `RESEND_API_KEY`.
 
@@ -268,14 +268,14 @@ Para que **no caigan en spam**:
 3. Toca **Deploy**. Si la URL final es distinta, corrige `APP_URL` y vuelve a desplegar.
 4. Configura el cron. En GitHub ve a **Settings → Secrets → Actions**, agrega `APP_URL` y `CRON_SECRET`, y en **Actions → Enviar avisos** prueba con **Run workflow**. Si quieres respaldo, configura también cron-job.org (ver la sección del cron).
 
-### 5. Prueba con la líder (cierra la Etapa 4)
-- [ ] En su celular abre la URL de Vercel (en iPhone, con Safari).
-- [ ] La agrega a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y la abre desde el ícono «CR ora».
-- [ ] Entra con su correo y el código de 6 dígitos.
-- [ ] En Ajustes toca **Activar avisos en este dispositivo** y acepta.
-- [ ] Toca **Enviar notificación de prueba**: debe llegarle «CR ora por ti» en segundos, incluso con la app cerrada.
+### 5. Prueba en un celular real (cierra la Etapa 4)
+- [ ] En el celular, abre la URL de Vercel (en iPhone, con Safari).
+- [ ] Agrégala a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y ábrela desde el ícono «CR ora».
+- [ ] Entra con tu correo y el código de 6 dígitos.
+- [ ] En Ajustes, toca **Activar avisos en este dispositivo** y acepta.
+- [ ] Toca **Enviar notificación de prueba**: debe llegarte «CR ora por ti» en segundos, incluso con la app cerrada.
 - [ ] Al tocar la notificación, se abre la app.
-- [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron a la líder le llega «Ora por …», y al tocarlo se abre esa tarjeta en la agenda.
+- [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron te llega «Ora por …», y al tocarlo se abre esa tarjeta en la agenda.
 
 ## Migraciones
 

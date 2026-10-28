@@ -75,7 +75,7 @@ async function terminar(log, ok, error) {
   });
 }
 
-// Un aviso (antes/después) para un orante o la líder.
+// Un aviso (antes/después) para un orante o líder.
 async function avisarOrante({ user, prefs, ev, tipo, ahora, stats }) {
   const nombre = nombreVisible(ev.user);
   const mensaje = tipo === 'ANTES' ? plantillas.avisoAntes(ev, nombre, ahora) : plantillas.avisoDespues(ev, nombre, ahora);
@@ -210,7 +210,7 @@ async function tareasDiarias({ ahora = new Date() } = {}) {
   return { necesitanReactivar };
 }
 
-// Domingo desde las 20:00: resumen de la semana para la líder.
+// Domingo desde las 20:00: resumen de la semana para quienes tienen rol líder.
 async function resumenSemanal({ ahora = new Date() } = {}) {
   const local = aLocal(ahora);
   if (local.weekday !== 7 || local.hour < 20) return null;

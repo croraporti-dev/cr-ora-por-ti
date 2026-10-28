@@ -19,7 +19,7 @@ export function vistaBienvenida() {
 }
 
 const AVISO = `Solo guardamos tu <strong>nombre, celular y el ramo, tipo, fecha y hora</strong> de tus evaluaciones.
-<strong>Nunca</strong> guardamos notas ni calificaciones. Tu celular solo lo ve la líder de jóvenes.`;
+<strong>Nunca</strong> guardamos notas ni calificaciones. Tu celular solo lo ven quienes administran el grupo.`;
 
 function formularioPerfil() {
   return `

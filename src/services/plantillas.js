@@ -104,7 +104,7 @@ function correoAviso({ asunto, texto, push }, { reactivar = false } = {}) {
   };
 }
 
-// Resumen del domingo para la líder.
+// Resumen del domingo para quienes tienen rol líder.
 function correoResumenSemanal({ proximas, oracionesSemana, pidieronOracion }) {
   const lineas = proximas.map((p) => `• ${mayuscula(diaRelativo(p.fechaHora))} ${horaCorta(p.fechaHora)}: ${p.nombre}, ${queTiene(p)}`);
   const texto = [

@@ -31,7 +31,7 @@ router.post('/solicitar', limitarPorIp('auth-solicitar', 40, 15 * 60), async (re
 
     if (modo === 'registro' && !existente) {
       if (!(await esCodigoValido(req.body.codigoInvitacion))) {
-        return res.status(400).json({ error: 'El código de invitación no es válido. Pídeselo a la líder de jóvenes.' });
+        return res.status(400).json({ error: 'El código de invitación no es válido. Pídeselo a quien te invitó a orar.' });
       }
       const esMenor = req.body.esMenor === true;
       if (req.body.aceptaAviso !== true) {

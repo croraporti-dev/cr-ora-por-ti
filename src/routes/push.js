@@ -66,7 +66,7 @@ router.post('/suscribir', limitarPorIp('push-suscribir', 300, 60 * 60), requiere
     if (typeof req.body.anterior === 'string' && req.body.anterior !== sub.endpoint) {
       await prisma.pushSubscription.deleteMany({ where: { endpoint: req.body.anterior, userId: user.id } });
     }
-    // Un mismo celular puede cambiar de dueño (p. ej. la líder prueba con el celular de otra persona).
+    // Un mismo celular puede cambiar de dueño (p. ej. alguien prueba con el celular de otra persona).
     await prisma.pushSubscription.upsert({
       where: { endpoint: sub.endpoint },
       create: { ...sub, userId: user.id, userAgent },

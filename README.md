@@ -143,7 +143,7 @@ ninguna suscripción sana queda marcado para ver el aviso de reactivación al ab
 `POST /api/cron/enviar-avisos` con el header `x-cron-secret: <CRON_SECRET>`. Responde solo conteos (sin datos personales).
 Llamarlo de más es seguro gracias a `NotificationLog`.
 
-### GitHub Actions (principal)
+### GitHub Actions (respaldo)
 
 El workflow ya está en [.github/workflows/enviar-avisos.yml](.github/workflows/enviar-avisos.yml).
 1. Sube el proyecto a un repositorio de GitHub.
@@ -151,17 +151,17 @@ El workflow ya está en [.github/workflows/enviar-avisos.yml](.github/workflows/
 3. En la pestaña **Actions**, abre "Enviar avisos" y prueba con **Run workflow**.
 
 Ten en cuenta dos limitaciones de GitHub:
-- **Retrasos:** GitHub suele atrasar los `schedule` entre 5 y 20 minutos, a veces más. La app lo tolera: el aviso "antes" sale mientras la evaluación no haya empezado.
+- **Retrasos:** en la práctica GitHub ejecuta el cron gratuito más o menos cada 45 minutos (medido en producción: entre 34 y 63), aunque esté configurado cada 10. Por eso el cron principal es cron-job.org.
 - **Repositorio público o privado:**
   - en un repositorio **privado** cada ejecución cuenta como 1 minuto, y cada 10 minutos son unos 4.300 minutos al mes, más que los 2.000 gratis;
   - en uno **público** los minutos son ilimitados, pero GitHub **desactiva los cron tras 60 días sin actividad** en el repositorio (avisa por correo).
   - Recomendación: repositorio público (no contiene secretos) **y además** cron-job.org.
 
-### cron-job.org (respaldo recomendado, gratis)
+### cron-job.org (principal, cada 5 minutos)
 
 1. Crea una cuenta en https://cron-job.org.
 2. Crea un cronjob con la URL `https://TU-APP/api/cron/enviar-avisos`, cada 10 minutos.
-3. En **Advanced**, configura el método `POST` y el header `x-cron-secret` con el valor de `CRON_SECRET`.
+3. En **Advanced**, configura el método `POST` (con GET la app responde 404) y el header `x-cron-secret` con el valor de `CRON_SECRET`.
 
 Puedes tener GitHub Actions y cron-job.org a la vez: si ambos llaman, igual no se duplica nada.
 

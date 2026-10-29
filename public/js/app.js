@@ -42,7 +42,7 @@ const MENU = [
   { ruta: '#/agenda', texto: 'Agenda' },
   { ruta: '#/ajustes', texto: 'Ajustes' },
   { ruta: '#/lider', texto: 'Grupo', roles: ['LIDER'] },
-  { ruta: '#/salir', texto: 'Salir' }
+  { ruta: '#/salir', texto: 'Cerrar sesión', clase: 'cerrar' }
 ];
 
 function irA(hash) {
@@ -50,17 +50,29 @@ function irA(hash) {
   else location.hash = hash;
 }
 
+// En celular el menú se abre con el botón de la izquierda; en pantallas grandes se ve en línea.
+function abrirMenu(abrir) {
+  document.getElementById('nav').classList.toggle('abierto', abrir);
+  const boton = document.getElementById('btn-menu');
+  boton.setAttribute('aria-expanded', String(abrir));
+  boton.setAttribute('aria-label', abrir ? 'Cerrar menú' : 'Abrir menú');
+}
+
 function pintarMenu(ruta) {
   const nav = document.getElementById('nav');
+  const boton = document.getElementById('btn-menu');
+  abrirMenu(false);
   if (!estado.user) {
     nav.hidden = true;
+    boton.hidden = true;
     return;
   }
   nav.hidden = false;
+  boton.hidden = false;
   // Mientras su solicitud está pendiente solo puede salir.
   const menu = estado.user.pendiente ? MENU.filter((m) => m.ruta === '#/salir') : MENU;
   nav.innerHTML = menu.filter((m) => !m.roles || m.roles.includes(estado.user.rol))
-    .map((m) => `<a href="${m.ruta}" class="${m.ruta === '#' + ruta ? 'activo' : ''}">${esc(m.texto)}</a>`)
+    .map((m) => `<a href="${m.ruta}" class="${m.ruta === '#' + ruta ? 'activo' : ''} ${m.clase || ''}">${esc(m.texto)}</a>`)
     .join('');
 }
 
@@ -115,7 +127,18 @@ async function render() {
   document.getElementById('vista').focus({ preventScroll: true });
 }
 
+function conectarMenu() {
+  const nav = document.getElementById('nav');
+  const boton = document.getElementById('btn-menu');
+  boton.addEventListener('click', () => abrirMenu(!nav.classList.contains('abierto')));
+  // Se cierra al elegir una opción, al tocar fuera o con Esc.
+  nav.addEventListener('click', (e) => { if (e.target.closest('a')) abrirMenu(false); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.barra')) abrirMenu(false); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') abrirMenu(false); });
+}
+
 async function iniciar() {
+  conectarMenu();
   push.registrarServiceWorker();
   push.precargarClave();
   await cargarSesion();

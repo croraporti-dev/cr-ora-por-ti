@@ -9,13 +9,17 @@ const DIA_MS = 24 * 60 * 60 * 1000;
 // Valida { tipo, ramo, fecha, hora } (fecha y hora en hora de Chile).
 function leerDatos(body) {
   const tipo = v.opcion(body.tipo, TIPOS, 'tipo');
-  const ramo = v.texto(body.ramo, { nombre: 'el ramo', min: 2, max: 60 });
+  const ramo = v.texto(body.ramo, { nombre: 'la asignatura o ramo', min: 2, max: 60 });
+  // Con "Otro" se puede escribir de qué se trata (opcional), por ejemplo "Disertación".
+  const otro = tipo === 'OTRO' ? String(body.tipoOtro ?? '').trim().replace(/\s+/g, ' ') : '';
+  if (otro.length > 40) throw new v.ErrorValidacion('El tipo de evaluación es demasiado largo (máximo 40 caracteres).');
+  const tipoOtro = otro || null;
   const fechaHora = desdeLocal(body.fecha, body.hora);
   if (!fechaHora) throw new v.ErrorValidacion('Revisa la fecha y la hora.');
   const diff = fechaHora.getTime() - Date.now();
   if (diff < -DIA_MS) throw new v.ErrorValidacion('Esa fecha ya pasó.');
   if (diff > 366 * DIA_MS) throw new v.ErrorValidacion('La fecha está muy lejos; anótala más adelante.');
-  return { tipo, ramo, fechaHora };
+  return { tipo, tipoOtro, ramo, fechaHora };
 }
 
 async function crear(userId, body) {
@@ -60,6 +64,7 @@ function aJson(e) {
   return {
     id: e.id,
     tipo: e.tipo,
+    tipoOtro: e.tipoOtro,
     ramo: e.ramo,
     fechaHora: e.fechaHora.toISOString(),
     estado: e.estado,

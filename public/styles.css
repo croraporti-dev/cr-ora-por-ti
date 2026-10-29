@@ -63,11 +63,11 @@ a { color: var(--primary); }
 }
 .btn-menu:hover, .btn-menu[aria-expanded=true] { background: var(--primary-light); color: var(--primary); }
 
-/* En celular: logo centrado, botón de menú a la izquierda y menú desplegable. */
+/* En celular: logo centrado, botón de menú a la derecha y menú desplegable. */
 @media (max-width: 560px) {
   .barra { display: grid; grid-template-columns: 44px 1fr 44px; gap: 8px; }
-  .btn-menu { display: inline-flex; grid-column: 1; }
-  .marca { grid-column: 2; justify-self: center; }
+  .btn-menu { display: inline-flex; grid-column: 3; grid-row: 1; }
+  .marca { grid-column: 2; grid-row: 1; justify-self: center; }
   .nav {
     position: absolute; top: 100%; left: 0; right: 0;
     flex-direction: column; gap: 2px; padding: 8px 12px 12px;
@@ -159,9 +159,34 @@ input:focus, select:focus { outline: none; border-color: var(--primary); box-sha
 .opciones.cuatro { grid-template-columns: 1fr 1fr; }
 .fila { display: grid; grid-template-columns: 1.4fr 1fr; gap: 10px; }
 .vacio { color: var(--text-muted); text-align: center; padding: 20px 8px; }
-.hora-24 { display: flex; align-items: center; gap: 6px; }
-.hora-24 select { padding-left: 10px; padding-right: 6px; text-align: center; }
+.hora-24 { display: flex; align-items: center; gap: 8px; max-width: 260px; }
+.hora-24 select { flex: 1; font-variant-numeric: tabular-nums; }
+.hora-24 span { font-weight: 700; }
 .atajos { display: flex; gap: 4px; margin: -8px 0 12px -10px; }
+
+/* Listas con flecha propia: la flecha nativa tapaba el número en algunos celulares. */
+select {
+  appearance: none; -webkit-appearance: none;
+  padding-right: 38px !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24'%3E%3Cpath d='M6 9l6 6 6-6' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 12px center; background-size: 14px;
+}
+
+/* Fecha: se escribe a mano o se toca el ícono para abrir el calendario. */
+.fecha { position: relative; }
+.fecha input[name=fecha] { padding-right: 56px; }
+.btn-calendario {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 44px; height: 44px; display: flex; align-items: center; justify-content: center;
+  color: var(--primary); border-radius: 8px; pointer-events: none;
+}
+.fecha .calendario {
+  position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+  width: 44px !important; height: 44px; padding: 0 !important; border: none !important;
+  opacity: 0; cursor: pointer; box-shadow: none !important;
+}
+.fecha .calendario::-webkit-calendar-picker-indicator { position: absolute; inset: 0; width: 100%; height: 100%; cursor: pointer; }
+.fecha:has(.calendario:hover) .btn-calendario { background: var(--primary-light); }
 
 /* Tarjetas de evaluación */
 .evaluacion { padding: 16px 18px; scroll-margin-top: 80px; }

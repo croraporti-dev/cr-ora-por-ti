@@ -1,7 +1,7 @@
 // Vista del joven: sin inicio de sesión. Primero sus datos, luego sus evaluaciones.
 import { api } from '../api.js';
 import { pintar, esc, conCarga, avisar, confirmar } from '../ui.js';
-import { TIPOS, ANIMOS, queTiene } from '../textos.js';
+import { TIPOS, ANIMOS, queTiene, nombreTipo } from '../textos.js';
 import { partesChile, cuando, hoyChile, fechaChileEn, aDMA, desdeDMA, yaPaso } from '../fechas.js';
 import { montarTarjetaAvisos } from './avisos.js';
 
@@ -57,17 +57,24 @@ function formularioEvaluacion(e) {
         ${Object.entries(TIPOS).map(([k, t]) => `
           <label class="opcion"><input type="radio" name="tipo" value="${k}" ${k === tipo ? 'checked' : ''}><span>${t.nombre}</span></label>`).join('')}
       </div>
-      <label class="campo"><span>Ramo</span><input type="text" name="ramo" maxlength="60" placeholder="Ej: Matemáticas" value="${esc(e?.ramo || '')}" required></label>
-      <div class="fila">
-        <label class="campo"><span>Fecha</span>
-          <input type="text" name="fecha" inputmode="numeric" placeholder="dd/mm/aaaa" maxlength="10" autocomplete="off" value="${p.fecha ? aDMA(p.fecha) : ''}" required>
-        </label>
-        <div class="campo"><span>Hora (24 h)</span>${camposHora(p.hora)}</div>
+      <label class="campo" id="c-otro" ${tipo === 'OTRO' ? '' : 'hidden'}><span>¿Qué tipo de evaluación? <span class="chico">(opcional)</span></span>
+        <input type="text" name="tipoOtro" maxlength="40" placeholder="Ej: Disertación, control, laboratorio" value="${esc(e?.tipoOtro || '')}"></label>
+      <label class="campo"><span>Asignatura o ramo</span><input type="text" name="ramo" maxlength="60" placeholder="Ej: Matemáticas" value="${esc(e?.ramo || '')}" required></label>
+      <div class="campo"><span>Fecha</span>
+        <div class="fecha">
+          <input type="text" name="fecha" inputmode="numeric" placeholder="dd/mm/aaaa" maxlength="10" autocomplete="off" value="${p.fecha ? aDMA(p.fecha) : ''}" aria-label="Fecha (dd/mm/aaaa)" required>
+          <span class="btn-calendario" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 10h18M8 3v4M16 3v4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          </span>
+          <!-- Encima del ícono, transparente: al tocarlo se abre el calendario del celular. -->
+          <input type="date" name="calendario" class="calendario" min="${hoyChile()}" value="${p.fecha || ''}" aria-label="Elegir fecha en el calendario" tabindex="-1">
+        </div>
       </div>
       <div class="atajos">
         <button type="button" class="btn texto" data-fecha="${aDMA(hoyChile())}">Hoy</button>
         <button type="button" class="btn texto" data-fecha="${aDMA(fechaChileEn(1))}">Mañana</button>
       </div>
+      <div class="campo"><span>Hora (24 h)</span>${camposHora(p.hora)}</div>
       <p class="error" hidden></p>
       <button type="submit" class="btn bloque">${e ? 'Guardar cambios' : 'Anotar'}</button>
       ${e ? '<button type="button" class="btn texto bloque" data-accion="cancelar">Cancelar</button>' : ''}
@@ -90,7 +97,7 @@ function tarjetaMia(e) {
   const animo = e.resultadoAnimo ? `<span class="etiqueta">${ANIMOS[e.resultadoAnimo].texto}</span>` : '';
   return `
     <div class="tarjeta evaluacion" data-id="${esc(e.id)}">
-      <div class="ev-titulo">${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
+      <div class="ev-titulo">${esc(nombreTipo(e))} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(cuando(e.fechaHora))}</div>
       ${oraron}
       ${yaPaso(e.fechaHora) ? '' : `
@@ -158,12 +165,31 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
 
   function conectarFormulario() {
     const f = cajaForm.querySelector('#f-eval');
-    // Escribe las barras solas: "02112026" → "02/11/2026".
+    // "Otro": aparece el campo para escribir de qué se trata.
+    f.querySelectorAll('input[name=tipo]').forEach((r) => r.addEventListener('change', () => {
+      const esOtro = f.tipo.value === 'OTRO';
+      f.querySelector('#c-otro').hidden = !esOtro;
+      if (esOtro) f.tipoOtro.focus();
+    }));
+
+    // La fecha se escribe a mano (dd/mm/aaaa) o se elige en el calendario; ambos se mantienen sincronizados.
+    const ponerFecha = (dma) => {
+      f.fecha.value = dma;
+      f.calendario.value = desdeDMA(dma) || '';
+    };
     f.fecha.addEventListener('input', () => {
       const d = f.fecha.value.replace(/\D/g, '').slice(0, 8);
       f.fecha.value = [d.slice(0, 2), d.slice(2, 4), d.slice(4)].filter(Boolean).join('/');
+      f.calendario.value = desdeDMA(f.fecha.value) || '';
     });
-    f.querySelectorAll('[data-fecha]').forEach((b) => b.addEventListener('click', () => { f.fecha.value = b.dataset.fecha; }));
+    f.calendario.addEventListener('change', () => {
+      if (f.calendario.value) f.fecha.value = aDMA(f.calendario.value);
+    });
+    // En computadores el calendario se abre con showPicker (en celulares basta el toque sobre el ícono).
+    f.calendario.addEventListener('click', () => {
+      try { f.calendario.showPicker?.(); } catch { /* el navegador abre su propio selector */ }
+    });
+    f.querySelectorAll('[data-fecha]').forEach((b) => b.addEventListener('click', () => ponerFecha(b.dataset.fecha)));
 
     f.addEventListener('submit', (ev) => {
       ev.preventDefault();
@@ -175,7 +201,13 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
         cajaError.hidden = false;
         return;
       }
-      const datos = { tipo: f.tipo.value, ramo: f.ramo.value, fecha, hora: `${f.horaH.value}:${f.horaM.value}` };
+      const datos = {
+        tipo: f.tipo.value,
+        tipoOtro: f.tipo.value === 'OTRO' ? f.tipoOtro.value : '',
+        ramo: f.ramo.value,
+        fecha,
+        hora: `${f.horaH.value}:${f.horaM.value}`
+      };
       conCarga(f.querySelector('button[type=submit]'), cajaError, async () => {
         await api(id ? `/joven/evaluaciones/${id}` : '/joven/evaluaciones', { metodo: id ? 'PUT' : 'POST', datos });
         avisar(id ? 'Cambios guardados' : 'Anotada. Oraremos por ti.');

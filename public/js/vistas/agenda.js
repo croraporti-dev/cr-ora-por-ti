@@ -1,7 +1,7 @@
 // Agenda de oración (orantes y líder).
 import { api } from '../api.js';
 import { pintar, esc, avisar, confirmar } from '../ui.js';
-import { TIPOS, ANIMOS } from '../textos.js';
+import { ANIMOS, nombreTipo } from '../textos.js';
 import { grupo, partesChile, cuando } from '../fechas.js';
 
 const GRUPOS = [
@@ -21,7 +21,7 @@ function tarjeta(e, user) {
   return `
     <article class="tarjeta evaluacion" id="ev-${esc(e.id)}" data-id="${esc(e.id)}">
       <strong class="ev-nombre">${esc(e.joven.nombre)}</strong>
-      <div class="ev-titulo">${esc(TIPOS[e.tipo].nombre)} de ${esc(e.ramo)} ${animo}</div>
+      <div class="ev-titulo">${esc(nombreTipo(e))} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(hora)}${pasada && !e.resultadoAnimo ? ' · ya pasó' : ''}</div>
       <div class="ev-pie">
         <span class="oraron">${e.oraciones ? `Ya están orando por ${esc(e.joven.nombre)}` : ''}</span>

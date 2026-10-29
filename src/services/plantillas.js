@@ -24,10 +24,11 @@ function boton(url, texto, color = '#2563eb') {
 // ---------- Avisos de evaluaciones ----------
 const { horaCorta, diaRelativo } = require('./tiempo');
 
-// "prueba de Matemáticas", "entrega de trabajo de Historia"
+// "prueba de Matemáticas", "entrega de trabajo de Historia", "disertación de Historia" (Otro con texto)
 const FRASE_TIPO = { PRUEBA: 'prueba', EXAMEN: 'examen', TRABAJO: 'entrega de trabajo', OTRO: 'una evaluación' };
 function queTiene(ev) {
-  return `${FRASE_TIPO[ev.tipo]} de ${ev.ramo}`;
+  const tipo = ev.tipo === 'OTRO' && ev.tipoOtro ? ev.tipoOtro.toLowerCase() : FRASE_TIPO[ev.tipo];
+  return `${tipo} de ${ev.ramo}`;
 }
 
 const FRASE_ANIMO = {

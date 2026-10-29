@@ -12,7 +12,13 @@ export const ANIMOS = {
   NECESITA_ORACION: { texto: 'Necesito oración', etiqueta: 'Pide oración' }
 };
 
+// "Prueba", o lo que escribió el joven si eligió "Otro" (ej: "Disertación").
+export function nombreTipo(e) {
+  if (e.tipo === 'OTRO') return e.tipoOtro || 'Evaluación';
+  return TIPOS[e.tipo].nombre;
+}
+
 // "prueba de Matemáticas"
 export function queTiene(e) {
-  return `${TIPOS[e.tipo].nombre.toLowerCase()} de ${e.ramo}`;
+  return `${nombreTipo(e).toLowerCase()} de ${e.ramo}`;
 }

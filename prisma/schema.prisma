@@ -106,6 +106,8 @@ model Evaluation {
   id              String           @id @default(cuid())
   userId          String
   tipo            TipoEvaluacion
+  // Si tipo = OTRO, lo que escribió el joven (ej: "Disertación"). Opcional.
+  tipoOtro        String?
   ramo            String
   fechaHora       DateTime
   estado          EstadoEvaluacion @default(PENDIENTE)

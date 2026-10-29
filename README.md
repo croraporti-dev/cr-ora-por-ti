@@ -69,7 +69,7 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 ## Acceso y roles
 
 **Jóvenes (`JOVEN`): sin cuenta ni inicio de sesión.**
-- Abren la app, tocan "Anotar mi prueba" y la primera vez escriben nombre, apellido y celular, y aceptan el aviso de privacidad.
+- Abren la app, tocan "Anotar mi prueba" y la primera vez escriben nombre, apellido y celular.
 - Su dispositivo queda recordado con una cookie httpOnly de 1 año, así que las siguientes veces solo anotan la evaluación.
 - Solo ven y modifican **sus propias** evaluaciones. No ven la agenda general, por lo que un desconocido que abra el formulario no ve datos de nadie.
 - Mismo número de celular = mismo joven. Si cambia de teléfono, escribe su número otra vez y recupera sus evaluaciones.

@@ -18,9 +18,6 @@ export function vistaBienvenida() {
   `);
 }
 
-const AVISO = `Solo guardamos tu <strong>nombre, celular y el ramo, tipo, fecha y hora</strong> de tus evaluaciones.
-<strong>Nunca</strong> guardamos notas ni calificaciones. Tu celular solo lo ven quienes administran el grupo.`;
-
 function formularioPerfil() {
   return `
     <h1>Cuéntanos quién eres</h1>
@@ -29,8 +26,6 @@ function formularioPerfil() {
       <label class="campo"><span>Nombre</span><input type="text" name="nombre" autocomplete="given-name" maxlength="40" required></label>
       <label class="campo"><span>Apellido</span><input type="text" name="apellido" autocomplete="family-name" maxlength="40" required></label>
       <label class="campo"><span>Celular</span><input type="text" name="telefono" inputmode="tel" autocomplete="tel" placeholder="9 1234 5678" required></label>
-      <div class="aviso-privacidad">${AVISO}</div>
-      <label class="check"><input type="checkbox" name="aceptaAviso"><span>Leí y acepto el aviso.</span></label>
       <p class="error" hidden></p>
       <button class="btn bloque">Continuar</button>
     </form>`;
@@ -128,8 +123,7 @@ function mostrarPerfil(vista) {
       await api('/joven/perfil', {
         metodo: 'POST',
         datos: {
-          nombre: f.nombre.value, apellido: f.apellido.value, telefono: f.telefono.value,
-          aceptaAviso: f.aceptaAviso.checked
+          nombre: f.nombre.value, apellido: f.apellido.value, telefono: f.telefono.value
         }
       });
       vistaMis();

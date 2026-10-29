@@ -30,25 +30,23 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// POST /api/joven/perfil — { nombre, apellido, telefono, aceptaAviso }
+// POST /api/joven/perfil — { nombre, apellido, telefono }
 router.post('/perfil', limitarPorIp('joven-perfil', 100, 60 * 60), async (req, res, next) => {
   try {
     const nombre = v.texto(req.body.nombre, { nombre: 'tu nombre', min: 2, max: 40 });
     const apellido = v.texto(req.body.apellido, { nombre: 'tu apellido', min: 2, max: 40 });
     const telefono = v.telefono(req.body.telefono);
-    if (req.body.aceptaAviso !== true) throw new v.ErrorValidacion('Para seguir necesitas aceptar el aviso.');
 
     const ahora = new Date();
-    const consentimiento = { aceptoAvisoAt: ahora };
     const existente = await prisma.user.findUnique({ where: { telefono } });
     if (existente && existente.rol !== 'JOVEN') {
       throw new v.ErrorValidacion('Ese número ya está registrado en el grupo como orante. Usa otro número.');
     }
     // Mismo número = mismo joven (por ejemplo, si cambió de celular).
     const joven = existente
-      ? await prisma.user.update({ where: { id: existente.id }, data: { nombre, apellido, ...consentimiento } })
+      ? await prisma.user.update({ where: { id: existente.id }, data: { nombre, apellido } })
       : await prisma.user.create({
-          data: { nombre, apellido, telefono, rol: 'JOVEN', ...consentimiento, aprobadoAt: ahora, prefs: { create: prefsPorDefecto('JOVEN') } }
+          data: { nombre, apellido, telefono, rol: 'JOVEN', aprobadoAt: ahora, prefs: { create: prefsPorDefecto('JOVEN') } }
         });
 
     await olvidarDispositivo(req, res);

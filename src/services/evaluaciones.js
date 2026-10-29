@@ -55,9 +55,9 @@ async function registrarAnimo(evaluationId, animo, userId) {
   return r.count > 0;
 }
 
-// "Camila P." — lo que ven los orantes.
+// Nombre completo ("Camila Pérez"): sin abreviar, para que el grupo sepa bien quién es.
 function nombreVisible(user) {
-  return user.apellido ? `${user.nombre} ${user.apellido[0].toUpperCase()}.` : user.nombre;
+  return [user.nombre, user.apellido].filter(Boolean).join(' ');
 }
 
 function aJson(e) {

@@ -8,7 +8,7 @@ const { ahoraLocal } = require('../services/tiempo');
 const router = express.Router();
 router.use(requiereRol('ORANTE', 'LIDER'));
 
-// GET /api/agenda — todos los jóvenes, desde hace 2 días en adelante (las pasadas muestran el ánimo).
+// GET /api/agenda — todos los jóvenes (con su celular, para escribirles por WhatsApp), desde hace 2 días en adelante (las pasadas muestran el ánimo).
 router.get('/', async (req, res, next) => {
   try {
     const desde = ahoraLocal().startOf('day').minus({ days: 2 }).toJSDate();
@@ -16,7 +16,7 @@ router.get('/', async (req, res, next) => {
       where: { fechaHora: { gte: desde } },
       orderBy: { fechaHora: 'asc' },
       include: {
-        user: { select: { id: true, nombre: true, apellido: true } },
+        user: { select: { id: true, nombre: true, apellido: true, telefono: true } },
         _count: { select: { oraciones: true } },
         oraciones: { where: { userId: req.user.id }, select: { id: true } }
       }
@@ -25,7 +25,7 @@ router.get('/', async (req, res, next) => {
     res.json({
       evaluaciones: evaluaciones.map((e) => ({
         ...ev.aJson(e),
-        joven: { id: e.user.id, nombre: ev.nombreVisible(e.user) },
+        joven: { id: e.user.id, nombre: ev.nombreVisible(e.user), telefono: e.user.telefono },
         oraciones: e._count.oraciones,
         yoOre: e.oraciones.length > 0
       }))

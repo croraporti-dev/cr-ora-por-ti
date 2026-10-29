@@ -192,6 +192,13 @@ select {
 .evaluacion { padding: 16px 18px; scroll-margin-top: 80px; }
 .ev-nombre { display: block; font-size: 1.1rem; }
 .ev-titulo { font-weight: 600; margin-top: 2px; }
+.ev-contacto { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin: 2px 0 8px; font-size: 0.9rem; }
+.ev-contacto a[href^="tel:"] { color: var(--text-muted); text-decoration: none; font-variant-numeric: tabular-nums; }
+.btn-whatsapp {
+  display: inline-flex; align-items: center; padding: 4px 12px; border-radius: 999px;
+  background: #e7f8ee; color: #128c4b; font-weight: 700; font-size: 0.85rem; text-decoration: none;
+}
+.btn-whatsapp:hover { background: #d3f2df; }
 .ev-cuando { color: var(--text-muted); font-size: 0.9rem; margin-top: 2px; }
 .ev-pie { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-top: 12px; }
 .ev-pie .btn { min-height: 46px; padding: 10px 16px; flex-shrink: 0; }

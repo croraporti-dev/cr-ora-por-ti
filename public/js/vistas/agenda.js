@@ -12,6 +12,23 @@ const GRUPOS = [
   ['pasadas', 'Hace poco']
 ];
 
+// "+56912345678" → "+56 9 1234 5678"
+function formatoCelular(t) {
+  const m = /^\+56(9)(\d{4})(\d{4})$/.exec(t || '');
+  return m ? `+56 ${m[1]} ${m[2]} ${m[3]}` : t || '';
+}
+
+// Celular (toca para llamar) y botón para escribirle por WhatsApp.
+function contacto(joven) {
+  if (!joven.telefono) return '';
+  const numero = joven.telefono.replace('+', '');
+  return `
+    <div class="ev-contacto">
+      <a href="tel:${esc(joven.telefono)}">${esc(formatoCelular(joven.telefono))}</a>
+      <a class="btn-whatsapp" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener">WhatsApp</a>
+    </div>`;
+}
+
 function tarjeta(e, user) {
   const pasada = grupo(e.fechaHora) === 'pasadas' || new Date(e.fechaHora) < new Date();
   const hora = ['hoy', 'manana'].includes(grupo(e.fechaHora)) ? partesChile(e.fechaHora).hora : cuando(e.fechaHora);
@@ -21,6 +38,7 @@ function tarjeta(e, user) {
   return `
     <article class="tarjeta evaluacion" id="ev-${esc(e.id)}" data-id="${esc(e.id)}">
       <strong class="ev-nombre">${esc(e.joven.nombre)}</strong>
+      ${contacto(e.joven)}
       <div class="ev-titulo">${esc(nombreTipo(e))} de ${esc(e.ramo)} ${animo}</div>
       <div class="ev-cuando">${esc(hora)}${pasada && !e.resultadoAnimo ? ' · ya pasó' : ''}</div>
       <div class="ev-pie">

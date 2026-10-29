@@ -73,7 +73,7 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 - Su dispositivo queda recordado con una cookie httpOnly de 1 año, así que las siguientes veces solo anotan la evaluación.
 - Solo ven y modifican **sus propias** evaluaciones. No ven la agenda general, por lo que un desconocido que abra el formulario no ve datos de nadie.
 - Mismo número de celular = mismo joven. Si cambia de teléfono, escribe su número otra vez y recupera sus evaluaciones.
-- El celular solo lo ven quienes tienen rol líder. Los orantes ven "Camila P.".
+- En la agenda, orantes y líderes ven el nombre completo del joven, su celular y un botón para escribirle por WhatsApp.
 - "¿Cómo te fue?" se responde en la app con tres botones cuando el joven vuelve a abrirla.
 
 **Orantes (`ORANTE`) y líder (`LIDER`): correo + contraseña.**

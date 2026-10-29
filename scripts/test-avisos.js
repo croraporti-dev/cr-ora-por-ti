@@ -110,9 +110,9 @@ test('push a quien tiene suscripción, correo a quien no; una sola vez aunque el
   assert.equal(pushesPara(lider).length, 1, 'la líder recibe 1 push');
   assert.equal(correosPara(lider).length, 0, 'la líder no recibe correo');
   assert.equal(correosPara(sinPush).length, 1, 'quien no tiene push recibe 1 correo');
-  assert.match(pushesPara(lider)[0].payload.body, /Camila P\. tiene prueba de Matemáticas\. Es un buen momento para orar por Camila P\.$/);
+  assert.match(pushesPara(lider)[0].payload.body, /Camila Pérez tiene prueba de Matemáticas\. Es un buen momento para orar por Camila Pérez.$/);
   assert.match(pushesPara(lider)[0].payload.url, /#\/agenda\?ev=/);
-  assert.match(correosPara(sinPush)[0].subject, /^CR ora por ti: (hoy|mañana) Camila P\. tiene prueba de Matemáticas$/);
+  assert.match(correosPara(sinPush)[0].subject, /^CR ora por ti: (hoy|mañana) Camila Pérez tiene prueba de Matemáticas$/);
 });
 
 test('ejecuciones en paralelo tampoco duplican', async () => {
@@ -248,7 +248,7 @@ test('aviso "después": a los orantes 2 h más tarde (con el ánimo) y push "¿C
 
   await avisos.enviarAvisosPendientes({ ahora: new Date() });
   assert.equal(pushesPara(o).length, 1);
-  assert.match(pushesPara(o)[0].payload.body, /Camila P\. tenía prueba de Matemáticas (hoy|ayer)\. Quizás es buen momento para escribirle/);
+  assert.match(pushesPara(o)[0].payload.body, /Camila Pérez tenía prueba de Matemáticas (hoy|ayer)\. Quizás es buen momento para escribirle/);
   assert.equal(pushesPara(j).length, 1);
   const alJoven = pushesPara(j)[0].payload;
   assert.equal(alJoven.title, '¿Cómo te fue en tu prueba de Matemáticas?');

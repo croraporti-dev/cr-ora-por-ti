@@ -1,5 +1,5 @@
 // Service worker de CR ora por ti: recibe los avisos push y deja la app abriendo sin conexión.
-const VERSION = 'cr-ora-v5';
+const VERSION = 'cr-ora-v6';
 const ARCHIVOS = [
   '/',
   '/index.html',

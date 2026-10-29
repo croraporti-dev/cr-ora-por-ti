@@ -48,7 +48,7 @@ export async function vistaAgenda({ user, params, avisos }) {
     ${bannerAvisos(avisos)}
     <h1>Agenda de oración</h1>
     <div id="lista"><p class="cargando">Cargando…</p></div>
-    <p class="chico" style="text-align:center;margin-top:20px">¿Tú también tienes una prueba o trabajo? <a href="#/mis">Anótalo aquí</a> y el grupo orará por ti.</p>
+    <p class="chico" style="text-align:center;margin-top:20px">¿Tú también tienes una prueba o examen? <a href="#/mis">Anótalo aquí</a> y el grupo orará por ti.</p>
   `);
 
   const lista = vista.querySelector('#lista');

@@ -80,7 +80,7 @@ h2 { font-size: 1.15rem; margin: 24px 0 10px; }
 /* Formularios */
 .campo { display: block; margin-bottom: 16px; }
 .campo > span { display: block; font-weight: 600; margin-bottom: 6px; }
-input[type=text], input[type=email], input[type=date], input[type=time], input[inputmode], select {
+input[type=text], input[type=email], input[type=password], input[type=date], input[type=time], input[inputmode], select {
   width: 100%; font: inherit; font-size: 1rem;
   padding: 12px 14px; border: 1.5px solid var(--border); border-radius: 10px;
   background: var(--surface); color: var(--text-main);

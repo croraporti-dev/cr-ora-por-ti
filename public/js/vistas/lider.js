@@ -45,10 +45,10 @@ function filaMiembro(m, yo) {
     acciones = numero ? `<a class="btn texto" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener">WhatsApp</a>` : '';
   } else {
     detalle = `${esc(m.email || '')} · avisos ${m.avisosActivos ? 'activos' : 'por correo'}${m.tieneClave ? '' : ' · sin contraseña'}`;
-    // Enlace para crear o cambiar la contraseña (por ejemplo, si la olvidó).
-    acciones = '<button class="btn texto" data-accion="acceso">Enviar acceso</button>';
+    // Para otras personas: enlace para crear o cambiar su contraseña (por ejemplo, si la olvidó).
+    // La propia contraseña se cambia en Ajustes.
     if (m.id !== yo) {
-      acciones += `<select data-accion="rol" aria-label="Rol de ${nombre}">
+      acciones = `<button class="btn texto" data-accion="acceso">Enviar acceso</button><select data-accion="rol" aria-label="Rol de ${nombre}">
         ${Object.entries(ROLES).map(([k, t]) => `<option value="${k}" ${k === m.rol ? 'selected' : ''}>${t}</option>`).join('')}
       </select>`;
     }

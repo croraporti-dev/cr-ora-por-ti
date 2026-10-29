@@ -23,7 +23,9 @@
     "cron:local": "node scripts/cron-local.js",
     "prod:migrar": "node --env-file=.env.produccion node_modules/prisma/build/index.js migrate deploy",
     "prod:crear-lider": "node --env-file=.env.produccion scripts/crear-lider.js",
-    "vercel:env": "node scripts/vercel-env.js"
+    "vercel:env": "node scripts/vercel-env.js",
+    "demo": "node scripts/demo.js",
+    "prod:demo": "node --env-file=.env.produccion scripts/demo.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

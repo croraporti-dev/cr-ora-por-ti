@@ -184,11 +184,49 @@ test('sin distinciones: cada orante recibe el aviso de cada joven', async () => 
   await evaluacion(diego, fecha);
   await avisos.enviarAvisosPendientes({ ahora: new Date() });
   for (const o of [o1, o2]) {
-    const cuerpos = pushesPara(o).map((p) => p.payload.body).join(' | ');
-    assert.equal(pushesPara(o).length, 2);
-    assert.match(cuerpos, /Camila/);
-    assert.match(cuerpos, /Diego/);
+    // Coinciden en el mismo ciclo: una sola notificación con los dos nombres.
+    assert.equal(pushesPara(o).length, 1);
+    const { title, body, url } = pushesPara(o)[0].payload;
+    assert.match(title, /^Ora por (Camila Pérez y Diego Pérez|Diego Pérez y Camila Pérez)$/);
+    assert.match(body, /Camila Pérez tiene prueba de Matemáticas/);
+    assert.match(body, /Diego Pérez tiene prueba de Matemáticas/);
+    assert.equal(url, '/#/agenda');
   }
+  // Y no se repite en el siguiente ciclo.
+  await avisos.enviarAvisosPendientes({ ahora: new Date() });
+  assert.equal(pushesPara(o1).length, 1);
+});
+
+test('3 o más evaluaciones juntas: una notificación de resumen, sin nombres', async () => {
+  const o = await orante({ push: 'ok' });
+  const fecha = new Date(Date.now() + 40 * 60 * 1000);
+  for (const nombre of ['Ana', 'Beto', 'Cata']) await evaluacion(await joven(nombre), fecha);
+  await avisos.enviarAvisosPendientes({ ahora: new Date() });
+  assert.equal(pushesPara(o).length, 1);
+  const { title, body } = pushesPara(o)[0].payload;
+  assert.equal(title, 'Ora por 3 personas');
+  assert.match(body, /^3 personas tienen una evaluación pronto\. Entra a la agenda/);
+  const logs = await prisma.notificationLog.count({ where: { userId: o.id, canal: 'PUSH', estado: 'OK' } });
+  assert.equal(logs, 3, 'cada evaluación queda registrada como avisada');
+});
+
+test('agrupado: si el push falla, sale un correo de respaldo por cada evaluación', async () => {
+  const o = await orante({ push: 410 });
+  const fecha = new Date(Date.now() + 40 * 60 * 1000);
+  await evaluacion(await joven('Ana'), fecha);
+  await evaluacion(await joven('Beto'), fecha);
+  await avisos.enviarAvisosPendientes({ ahora: new Date() });
+  assert.equal(correosPara(o).length, 2);
+});
+
+test('"después" de dos personas: una notificación con los dos nombres', async () => {
+  const o = await orante({ push: 'ok' });
+  const fecha = new Date(Date.now() - 3 * HORA);
+  await evaluacion(await joven('Ana'), fecha);
+  await evaluacion(await joven('Beto'), fecha);
+  await avisos.enviarAvisosPendientes({ ahora: new Date() });
+  assert.equal(pushesPara(o).length, 1);
+  assert.match(pushesPara(o)[0].payload.title, /^¿Cómo les fue a (Ana Pérez y Beto Pérez|Beto Pérez y Ana Pérez)\?$/);
 });
 
 test('quien espera aprobación no recibe avisos', async () => {

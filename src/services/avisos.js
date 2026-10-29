@@ -75,41 +75,56 @@ async function terminar(log, ok, error) {
   });
 }
 
-// Un aviso (antes/después) para un orante o líder.
-async function avisarOrante({ user, prefs, ev, tipo, ahora, stats }) {
-  const nombre = nombreVisible(ev.user);
-  const mensaje = tipo === 'ANTES' ? plantillas.avisoAntes(ev, nombre, ahora) : plantillas.avisoDespues(ev, nombre, ahora);
+// Avisos (antes o después) para un orante o líder. Si en este ciclo coinciden varias evaluaciones,
+// el push sale en UNA notificación (2 nombres, o un resumen si son 3 o más). El correo de respaldo
+// sigue siendo uno por evaluación.
+async function avisarOrante({ user, prefs, evs, tipo, ahora, stats }) {
   const quierePush = tipo === 'ANTES' ? prefs.pushAntes : prefs.pushDespues;
   const quiereCorreo = (tipo === 'ANTES' ? prefs.emailAntes : prefs.emailDespues) || (quierePush && prefs.tambienCorreo);
-  const base = { userId: user.id, evaluationId: ev.id, tipo };
+  const clave = (ev, canal) => ({ userId: user.id, evaluationId: ev.id, tipo, canal });
+  const pushLogs = new Map();
 
-  let pushLog = await prisma.notificationLog.findUnique({ where: { userId_evaluationId_tipo_canal: { ...base, canal: 'PUSH' } } });
+  for (const ev of evs) {
+    pushLogs.set(ev.id, await prisma.notificationLog.findUnique({ where: { userId_evaluationId_tipo_canal: clave(ev, 'PUSH') } }));
+  }
 
-  if (quierePush && !pushLog && push.disponible() && user.pushActivas > 0) {
-    const log = await reclamar({ ...base, canal: 'PUSH' }, ahora);
-    if (log) {
-      const r = await push.enviarAUsuario(user.id, mensaje.push);
-      pushLog = await terminar(log, r.ok, r.error);
+  if (quierePush && push.disponible() && user.pushActivas > 0) {
+    const reclamados = [];
+    for (const ev of evs) {
+      if (pushLogs.get(ev.id)) continue;
+      const log = await reclamar(clave(ev, 'PUSH'), ahora);
+      if (log) reclamados.push({ ev, log });
+    }
+    if (reclamados.length) {
+      const items = reclamados.map(({ ev }) => ({ ev, nombre: nombreVisible(ev.user) }));
+      const r = await push.enviarAUsuario(user.id, plantillas.avisoPushAgrupado(tipo, items, ahora));
+      for (const { ev, log } of reclamados) pushLogs.set(ev.id, await terminar(log, r.ok, r.error));
       stats[r.ok ? 'push' : 'pushFallidos']++;
     }
   }
 
-  const pushOk = pushLog?.estado === 'OK';
-  const pushEnCurso = pushLog?.estado === 'ENVIANDO' && !enviandoVencido(pushLog, ahora);
-  const respaldo = quierePush && !pushOk && !pushEnCurso;
-  if (!user.email || !(quiereCorreo || respaldo)) return;
+  if (!user.email) return;
+  for (const ev of evs) {
+    const pushLog = pushLogs.get(ev.id);
+    const pushOk = pushLog?.estado === 'OK';
+    const pushEnCurso = pushLog?.estado === 'ENVIANDO' && !enviandoVencido(pushLog, ahora);
+    const respaldo = quierePush && !pushOk && !pushEnCurso;
+    if (!(quiereCorreo || respaldo)) continue;
 
-  const log = await reclamar({ ...base, canal: 'EMAIL' }, ahora);
-  if (!log) return;
-  // Si tenía push y falló (o venció), el correo trae el enlace para reactivarlo.
-  const reactivar = quierePush && (pushLog?.estado === 'FALLO' || prefs.pushNecesitaReactivar);
-  try {
-    await enviarCorreo({ to: user.email, ...plantillas.correoAviso(mensaje, { reactivar }) });
-    await terminar(log, true);
-    stats.correos++;
-  } catch (err) {
-    await terminar(log, false, err.message);
-    stats.correosFallidos++;
+    const log = await reclamar(clave(ev, 'EMAIL'), ahora);
+    if (!log) continue;
+    const nombre = nombreVisible(ev.user);
+    const mensaje = tipo === 'ANTES' ? plantillas.avisoAntes(ev, nombre, ahora) : plantillas.avisoDespues(ev, nombre, ahora);
+    // Si tenía push y falló (o venció), el correo trae el enlace para reactivarlo.
+    const reactivar = quierePush && (pushLog?.estado === 'FALLO' || prefs.pushNecesitaReactivar);
+    try {
+      await enviarCorreo({ to: user.email, ...plantillas.correoAviso(mensaje, { reactivar }) });
+      await terminar(log, true);
+      stats.correos++;
+    } catch (err) {
+      await terminar(log, false, err.message);
+      stats.correosFallidos++;
+    }
   }
 }
 
@@ -159,18 +174,15 @@ async function enviarAvisosPendientes({ ahora = new Date() } = {}) {
 
   const orantes = await cargarOrantes();
 
+  // Junta, por persona que ora, las evaluaciones que le tocan en este ciclo para agruparlas.
+  for (const o of orantes) {
+    const antes = evaluaciones.filter((ev) => ev.userId !== o.user.id && (o.prefs.pushAntes || o.prefs.emailAntes) && tocaAntes(ev, o.prefs, ahora));
+    const despues = evaluaciones.filter((ev) => ev.userId !== o.user.id && (o.prefs.pushDespues || o.prefs.emailDespues) && tocaDespues(ev, ahora));
+    if (antes.length) await avisarOrante({ ...o, evs: antes, tipo: 'ANTES', ahora, stats });
+    if (despues.length) await avisarOrante({ ...o, evs: despues, tipo: 'DESPUES', ahora, stats });
+  }
   for (const ev of evaluaciones) {
-    const despues = tocaDespues(ev, ahora);
-    for (const o of orantes) {
-      if (o.user.id === ev.userId) continue;
-      if (tocaAntes(ev, o.prefs, ahora) && (o.prefs.pushAntes || o.prefs.emailAntes)) {
-        await avisarOrante({ ...o, ev, tipo: 'ANTES', ahora, stats });
-      }
-      if (despues && (o.prefs.pushDespues || o.prefs.emailDespues)) {
-        await avisarOrante({ ...o, ev, tipo: 'DESPUES', ahora, stats });
-      }
-    }
-    if (despues) await avisarJoven({ ev, ahora, stats });
+    if (tocaDespues(ev, ahora)) await avisarJoven({ ev, ahora, stats });
   }
   return stats;
 }

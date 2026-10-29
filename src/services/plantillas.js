@@ -64,6 +64,37 @@ function avisoDespues(ev, nombre, ahora = new Date()) {
   };
 }
 
+// Push agrupado cuando coinciden varias evaluaciones en el mismo ciclo. items = [{ ev, nombre }]
+// 1 → el aviso normal; 2 → con los dos nombres; 3 o más → resumen (con nombres sería demasiado largo).
+function avisoPushAgrupado(tipo, items, ahora = new Date()) {
+  if (items.length === 1) {
+    const { ev, nombre } = items[0];
+    return (tipo === 'ANTES' ? avisoAntes(ev, nombre, ahora) : avisoDespues(ev, nombre, ahora)).push;
+  }
+  const tag = `${tipo.toLowerCase()}-grupo-${items.map((i) => i.ev.id).sort().join('-').slice(0, 60)}`;
+  if (items.length === 2) {
+    const [a, b] = items;
+    if (tipo === 'ANTES') {
+      const cuando = (ev) => `${diaRelativo(ev.fechaHora, ahora)} a las ${horaCorta(ev.fechaHora)}`;
+      const mismaHora = cuando(a.ev) === cuando(b.ev);
+      const body = mismaHora
+        ? `${mayuscula(cuando(a.ev))}, ${a.nombre} tiene ${queTiene(a.ev)} y ${b.nombre} tiene ${queTiene(b.ev)}. Es un buen momento para orar.`
+        : `${a.nombre} tiene ${queTiene(a.ev)} ${cuando(a.ev)}, y ${b.nombre} tiene ${queTiene(b.ev)} ${cuando(b.ev)}. Es un buen momento para orar.`;
+      return { title: `Ora por ${a.nombre} y ${b.nombre}`, body, url: '/#/agenda', tag };
+    }
+    return {
+      title: `¿Cómo les fue a ${a.nombre} y ${b.nombre}?`,
+      body: `${a.nombre} tenía ${queTiene(a.ev)} y ${b.nombre} tenía ${queTiene(b.ev)}. Quizás es buen momento para escribirles y preguntarles cómo les fue.`,
+      url: '/#/agenda',
+      tag
+    };
+  }
+  const n = items.length;
+  return tipo === 'ANTES'
+    ? { title: `Ora por ${n} personas`, body: `${n} personas tienen una evaluación pronto. Entra a la agenda para ver los detalles y orar por cada una.`, url: '/#/agenda', tag }
+    : { title: '¿Cómo les fue?', body: `${n} personas tuvieron una evaluación. Entra a la agenda para ver cómo les fue y escribirles.`, url: '/#/agenda', tag };
+}
+
 // Al joven (solo push: no tiene correo). Los botones del aviso registran el ánimo con un token firmado.
 function avisoJoven(ev, tokenAnimo) {
   return {
@@ -138,6 +169,6 @@ function correoAprobado(persona) {
 
 module.exports = {
   MARCA, escapar, envolver, boton, appUrl: () => config.appUrl,
-  queTiene, avisoAntes, avisoDespues, avisoJoven, correoAviso, correoResumenSemanal,
+  queTiene, avisoAntes, avisoDespues, avisoPushAgrupado, avisoJoven, correoAviso, correoResumenSemanal,
   avisoSolicitud, correoAprobado
 };

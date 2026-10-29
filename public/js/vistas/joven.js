@@ -34,9 +34,11 @@ function formularioPerfil() {
 const dos = (n) => String(n).padStart(2, '0');
 
 // Hora en 24 h con dos listas (los selectores nativos muestran AM/PM según el celular).
+// Minutos solo en punto o y media: los avisos no necesitan más precisión y así coinciden más.
 function camposHora(hora) {
   const [h, m] = (hora || '08:00').split(':');
-  const minutos = Array.from({ length: 12 }, (_, i) => dos(i * 5));
+  const minutos = ['00', '30'];
+  // Una evaluación antigua con otros minutos conserva los suyos al editarla.
   if (!minutos.includes(m)) minutos.push(m);
   minutos.sort();
   return `

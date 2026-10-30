@@ -231,10 +231,11 @@ select {
 .pidieron { background: var(--calido-light); color: #b45309; border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 0.9rem; }
 h3 { font-size: 1rem; margin: 18px 0 8px; }
 .miembros { list-style: none; }
-.miembro { display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 10px 0; border-top: 1px solid var(--border); }
-.miembro-datos { display: flex; flex-direction: column; min-width: 0; }
+/* Los datos ocupan el ancho disponible; si no caben junto a las acciones, las acciones bajan a otra línea. */
+.miembro { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 6px 10px; padding: 12px 0; border-top: 1px solid var(--border); }
+.miembro-datos { display: flex; flex-direction: column; flex: 1 1 220px; min-width: 0; }
 .miembro-datos .chico { overflow-wrap: anywhere; }
-.miembro-acciones { display: flex; align-items: center; gap: 2px; flex-shrink: 0; }
+.miembro-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; margin-left: -8px; }
 .miembro-acciones select { width: auto; padding: 6px 8px; font-size: 0.85rem; }
 .miembro-acciones .btn.texto { padding: 6px 8px; font-size: 0.85rem; }
 .btn.chico-btn { min-height: 0; padding: 6px 12px; font-size: 0.85rem; }

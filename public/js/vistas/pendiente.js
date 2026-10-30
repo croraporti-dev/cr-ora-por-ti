@@ -6,7 +6,7 @@ export function vistaPendiente({ alRevisar }) {
     <h1>Solicitud enviada</h1>
     <div class="tarjeta">
       <p style="margin-bottom:12px">Gracias por querer orar por los jóvenes. Alguien del equipo revisará tu solicitud.</p>
-      <p class="chico" style="margin-bottom:16px">Cuando te aprueben te avisaremos por correo y aquí verás la agenda de oración.</p>
+      <p class="chico" style="margin-bottom:16px">Cuando te aprueben, aquí verás la agenda de oración.</p>
       <button class="btn secundario bloque" id="revisar">Revisar de nuevo</button>
     </div>
     <p class="chico">¿Tienes una prueba o examen? <a href="#/mis">Anótalo aquí</a>.</p>

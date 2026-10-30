@@ -7,6 +7,7 @@
 // - Las ventanas son amplias (el aviso "antes" vale hasta la hora de la evaluación, el "después" durante 24 h),
 //   así que un cron atrasado por GitHub no pierde avisos.
 const prisma = require('../db');
+const config = require('../config');
 const push = require('./push');
 const { enviarCorreo } = require('./mailer');
 const plantillas = require('./plantillas');
@@ -38,6 +39,11 @@ function tocaAntes(ev, prefs, ahora) {
 function tocaDespues(ev, ahora) {
   const desde = ev.fechaHora.getTime() + DESPUES_HORAS * HORA;
   return desde <= ahora.getTime() && ahora.getTime() < desde + VENTANA_DESPUES_HORAS * HORA;
+}
+
+// "consola" solo muestra los correos en los registros: en producción equivale a no tener correo.
+function correoActivo() {
+  return !(config.esProduccion && config.mail.proveedor === 'consola');
 }
 
 function esDuplicado(err) {
@@ -103,7 +109,9 @@ async function avisarOrante({ user, prefs, evs, tipo, ahora, stats }) {
     }
   }
 
-  if (!user.email) return;
+  // Sin proveedor de correo real en producción, el correo de respaldo no se intenta: así el aviso
+  // sigue pendiente y llega por push apenas la persona active las notificaciones.
+  if (!user.email || !correoActivo()) return;
   for (const ev of evs) {
     const pushLog = pushLogs.get(ev.id);
     const pushOk = pushLog?.estado === 'OK';

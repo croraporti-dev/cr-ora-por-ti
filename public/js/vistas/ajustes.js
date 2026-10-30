@@ -9,23 +9,16 @@ const ANTICIPACIONES = [
   ['NOCHE_ANTERIOR_20H', 'La noche anterior, a las 20:00']
 ];
 
-// Los 3 campos del modelo (push, correo, también correo) se muestran como una sola elección.
-function canalActual(p) {
-  if (!p.pushAntes && !p.pushDespues && (p.emailAntes || p.emailDespues)) return 'correo';
-  return p.tambienCorreo ? 'ambos' : 'celular';
-}
-
 function prefsDesdeFormulario(f) {
   const antes = f.antes.checked;
   const despues = f.despues.checked;
-  const canal = f.canal.value;
-  const usaPush = canal !== 'correo';
+  // Por ahora los avisos son solo notificaciones en el dispositivo (no se envían correos).
   return {
-    pushAntes: antes && usaPush,
-    pushDespues: despues && usaPush,
-    emailAntes: antes && !usaPush,
-    emailDespues: despues && !usaPush,
-    tambienCorreo: canal === 'ambos',
+    pushAntes: antes,
+    pushDespues: despues,
+    emailAntes: false,
+    emailDespues: false,
+    tambienCorreo: false,
     anticipacion: f.anticipacion.value
   };
 }
@@ -42,7 +35,6 @@ export async function vistaAjustes({ params }) {
   const { prefs } = datos;
   const antes = prefs.pushAntes || prefs.emailAntes;
   const despues = prefs.pushDespues || prefs.emailDespues;
-  const canal = canalActual(prefs);
 
   vista.innerHTML = `
     <h1>Ajustes</h1>
@@ -56,14 +48,7 @@ export async function vistaAjustes({ params }) {
         </label>
         <label class="check"><input type="checkbox" name="despues" ${despues ? 'checked' : ''}><span><strong>Después</strong> (2 horas más tarde), para escribirle y preguntarle cómo le fue</span></label>
       </div>
-
-      <div class="tarjeta">
-        <h2 style="margin-top:0">¿Por dónde?</h2>
-        <label class="check"><input type="radio" name="canal" value="celular" ${canal === 'celular' ? 'checked' : ''}><span>Notificación en tu dispositivo <span class="chico">(si no llega, te escribimos por correo)</span></span></label>
-        <label class="check"><input type="radio" name="canal" value="ambos" ${canal === 'ambos' ? 'checked' : ''}><span>Notificación y también correo</span></label>
-        <label class="check"><input type="radio" name="canal" value="correo" ${canal === 'correo' ? 'checked' : ''}><span>Solo correo</span></label>
-      </div>
-      <p class="chico">Recibirás avisos de todos los jóvenes del grupo.</p>
+      <p class="chico">Recibirás avisos de todos los jóvenes del grupo como notificaciones en este dispositivo.</p>
     </form>
 
     <form id="f-clave" class="tarjeta" novalidate style="margin-top:14px">

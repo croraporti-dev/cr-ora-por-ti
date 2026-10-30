@@ -42,7 +42,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
     if (e.ios && !e.instalada) return (contenedor.innerHTML = guiaIphone(e.iosViejo));
     if (e.iosViejo) return (contenedor.innerHTML = guiaIphone(true));
     if (!e.soporte) {
-      contenedor.innerHTML = `<div class="tarjeta"><p>Este navegador no permite avisos. En Android ábrela en <strong>Chrome</strong>; en iPhone, en <strong>Safari</strong>.${modo === 'orante' ? ' Mientras tanto te avisamos por correo.' : ''}</p></div>`;
+      contenedor.innerHTML = `<div class="tarjeta"><p>Este navegador no permite avisos. En Android ábrela en <strong>Chrome</strong>; en iPhone, en <strong>Safari</strong>.</p></div>`;
       return;
     }
     if (push.entorno().permiso === 'denied') return (contenedor.innerHTML = bloqueado(e));
@@ -108,7 +108,7 @@ export async function montarTarjetaAvisos(contenedor, { modo = 'orante', resalta
         avisar('Enviada. Debería llegarte en unos segundos.');
       });
     } else if (accion === 'desactivar') {
-      if (!(await confirmar('Dejarán de llegarte notificaciones en este dispositivo. Te avisaremos por correo.', { titulo: '¿Desactivar avisos?', aceptar: 'Desactivar' }))) return;
+      if (!(await confirmar('Dejarán de llegarte notificaciones en este dispositivo.', { titulo: '¿Desactivar avisos?', aceptar: 'Desactivar' }))) return;
       await push.desactivar();
       await pintar();
     } else if (accion === 'reintentar') {

@@ -14,10 +14,9 @@ function resumenHtml(r) {
       ${cifra(r.evaluaciones, plural(r.evaluaciones, 'evaluación', 'evaluaciones'), r.evaluacionesPendientes ? `${r.evaluacionesPendientes} por venir` : '')}
       ${cifra(r.jovenes, plural(r.jovenes, 'joven con evaluaciones', 'jóvenes con evaluaciones'))}
       ${cifra(r.oraciones, plural(r.oraciones, 'oración registrada', 'oraciones registradas'))}
-      ${cifra(r.avisosPush + r.avisosCorreo, plural(r.avisosPush + r.avisosCorreo, 'aviso enviado', 'avisos enviados'), `${r.avisosPush} push · ${r.avisosCorreo} correo`)}
+      ${cifra(r.avisosPush, plural(r.avisosPush, 'notificación enviada', 'notificaciones enviadas'))}
     </div>
-    <p class="chico">Orantes con avisos activos en algún dispositivo: <strong>${r.orantesConPush} de ${r.orantes}</strong>.
-      Los demás reciben los avisos por correo.</p>
+    <p class="chico">Orantes con avisos activos en algún dispositivo: <strong>${r.orantesConPush} de ${r.orantes}</strong>.</p>
     ${r.pidieronOracion.length
       ? `<div class="pidieron"><strong>Pidieron oración en los últimos 7 días:</strong> ${r.pidieronOracion.map(esc).join(', ')}</div>`
       : ''}`;
@@ -44,7 +43,7 @@ function filaMiembro(m, yo) {
     detalle = `${esc(m.telefono || '')} · ${m.evaluaciones} ${m.evaluaciones === 1 ? 'evaluación' : 'evaluaciones'}`;
     acciones = numero ? `<a class="btn texto" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener">WhatsApp</a>` : '';
   } else {
-    detalle = `${esc(m.email || '')} · avisos ${m.avisosActivos ? 'activos' : 'por correo'}${m.tieneClave ? '' : ' · sin contraseña'}`;
+    detalle = `${esc(m.email || '')} · avisos ${m.avisosActivos ? 'activos' : 'no activos'}${m.tieneClave ? '' : ' · sin contraseña'}`;
     // Para otras personas: enlace para crear o cambiar su contraseña (por ejemplo, si la olvidó).
     // La propia contraseña se cambia en Ajustes.
     if (m.id !== yo) {
@@ -183,7 +182,7 @@ export async function vistaLider() {
     if (accion === 'aprobar') {
       await conCarga(boton, null, async () => {
         await api(`/lider/miembros/${m.id}/aprobar`, { metodo: 'POST' });
-        avisar(`${m.nombre} ya puede orar con el grupo. Le avisamos por correo.`);
+        avisar(`${m.nombre} ya puede orar con el grupo.`);
         await Promise.all([cargarMiembros(), cargarResumen()]);
       });
       return;

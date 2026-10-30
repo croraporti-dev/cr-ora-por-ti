@@ -57,8 +57,7 @@ export function vistaLogin({ irA, params, alEntrar, pestana = 'entrar' }) {
       <label class="campo"><span>Tu nombre</span>
         <input type="text" name="nombre" autocomplete="given-name" maxlength="40" required></label>
       <label class="campo"><span>Tu correo</span>
-        <input type="email" name="email" autocomplete="email" inputmode="email" required>
-        <small class="chico">Lo usamos para entrar y para enviarte recordatorios si no te llega la notificación.</small></label>
+        <input type="email" name="email" autocomplete="email" inputmode="email" required></label>
       ${campoClave('password', 'Crea una contraseña (mínimo 8 caracteres)', 'new-password')}
       <div class="aviso-privacidad">${AVISO_PRIVACIDAD}</div>
       <label class="check"><input type="checkbox" name="aceptaAviso"><span>Me comprometo a cuidar esta información.</span></label>

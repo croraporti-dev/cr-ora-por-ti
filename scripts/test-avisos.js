@@ -239,6 +239,26 @@ test('quien espera aprobación no recibe avisos', async () => {
   assert.equal(correosPara(pendiente).length, 0);
 });
 
+test('producción sin correo real: el aviso espera y llega por push al activar las notificaciones', async () => {
+  const config = require('../src/config');
+  const antes = config.esProduccion;
+  config.esProduccion = true; // con MAIL_PROVIDER=consola
+  try {
+    const o = await orante(); // todavía sin push
+    await evaluacion(await joven(), new Date(Date.now() + 40 * 60 * 1000));
+    await avisos.enviarAvisosPendientes({ ahora: new Date() });
+    assert.equal(correosPara(o).length, 0, 'no se "gasta" el aviso en un correo que no sale');
+    assert.equal(await prisma.notificationLog.count({ where: { userId: o.id } }), 0);
+
+    const endpoint = `https://push.test/${o.id}`;
+    await prisma.pushSubscription.create({ data: { userId: o.id, endpoint, p256dh: 'x', auth: 'y' } });
+    await avisos.enviarAvisosPendientes({ ahora: new Date() });
+    assert.equal(pushesPara(o).length, 1, 'al activar las notificaciones le llega el aviso pendiente');
+  } finally {
+    config.esProduccion = antes;
+  }
+});
+
 test('respeta la anticipación: 3 horas no avisa a las 3 h 10 min, sí a las 2 h 50 min', async () => {
   const o = await orante({ push: 'ok', anticipacion: 'TRES_HORAS' });
   const fecha = new Date(Date.now() + 5 * HORA);

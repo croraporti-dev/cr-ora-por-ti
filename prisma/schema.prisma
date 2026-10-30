@@ -36,8 +36,11 @@ enum Animo {
 
 // 1H | 3H | noche anterior a las 20:00 (hora de Chile)
 enum Anticipacion {
+  TREINTA_MIN
   UNA_HORA
+  DOS_HORAS
   TRES_HORAS
+  // Antiguo: hoy el aviso del día anterior es una opción aparte (diaAnterior + horaDiaAnterior).
   NOCHE_ANTERIOR_20H
 }
 
@@ -45,6 +48,8 @@ enum Anticipacion {
 enum TipoAviso {
   ANTES
   DESPUES
+  // Recordatorio opcional el día anterior, a la hora que elige cada persona
+  DIA_ANTERIOR
 }
 
 enum Canal {
@@ -130,6 +135,9 @@ model NotificationPrefs {
   pushDespues     Boolean      @default(true)
   tambienCorreo   Boolean      @default(false)
   anticipacion    Anticipacion @default(UNA_HORA)
+  // Recordatorio opcional el día anterior a la evaluación (hora de Chile, 0-23)
+  diaAnterior     Boolean      @default(false)
+  horaDiaAnterior Int          @default(20)
   // Lo marca el chequeo diario cuando el push de este usuario no responde bien
   pushNecesitaReactivar Boolean @default(false)
 

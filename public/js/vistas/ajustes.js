@@ -4,10 +4,12 @@ import { pintar, esc, avisar, conCarga } from '../ui.js';
 import { montarTarjetaAvisos } from './avisos.js';
 
 const ANTICIPACIONES = [
+  ['TREINTA_MIN', '30 minutos antes'],
   ['UNA_HORA', '1 hora antes'],
-  ['TRES_HORAS', '3 horas antes'],
-  ['NOCHE_ANTERIOR_20H', 'La noche anterior, a las 20:00']
+  ['DOS_HORAS', '2 horas antes'],
+  ['TRES_HORAS', '3 horas antes']
 ];
+const HORAS_DIA_ANTERIOR = [17, 18, 19, 20, 21, 22];
 
 function prefsDesdeFormulario(f) {
   const antes = f.antes.checked;
@@ -19,7 +21,9 @@ function prefsDesdeFormulario(f) {
     emailAntes: false,
     emailDespues: false,
     tambienCorreo: false,
-    anticipacion: f.anticipacion.value
+    anticipacion: f.anticipacion.value,
+    diaAnterior: f.diaAnterior.checked,
+    horaDiaAnterior: Number(f.horaDiaAnterior.value)
   };
 }
 
@@ -42,7 +46,12 @@ export async function vistaAjustes({ params }) {
     <form id="f-ajustes">
       <div class="tarjeta">
         <h2 style="margin-top:0">¿Cuándo avisarte?</h2>
-        <label class="check"><input type="checkbox" name="antes" ${antes ? 'checked' : ''}><span><strong>Antes</strong> de cada evaluación, para orar</span></label>
+        <p class="chico" style="margin-bottom:14px">Puedes activar uno, varios o ninguno.</p>
+        <label class="check"><input type="checkbox" name="diaAnterior" ${prefs.diaAnterior ? 'checked' : ''}><span><strong>El día anterior</strong>, para tenerlo presente</span></label>
+        <label class="campo" id="c-dia-anterior" style="margin:-4px 0 14px 34px"><span class="chico">¿A qué hora?</span>
+          <select name="horaDiaAnterior">${HORAS_DIA_ANTERIOR.map((h) => `<option value="${h}" ${h === prefs.horaDiaAnterior ? 'selected' : ''}>${h}:00</option>`).join('')}</select>
+        </label>
+        <label class="check"><input type="checkbox" name="antes" ${antes ? 'checked' : ''}><span><strong>Antes de la evaluación</strong>, para orar en el momento</span></label>
         <label class="campo" id="c-anticipacion" style="margin:-4px 0 14px 34px"><span class="chico">¿Con cuánta anticipación?</span>
           <select name="anticipacion">${ANTICIPACIONES.map(([k, t]) => `<option value="${k}" ${k === prefs.anticipacion ? 'selected' : ''}>${t}</option>`).join('')}</select>
         </label>
@@ -76,6 +85,7 @@ export async function vistaAjustes({ params }) {
   const f = vista.querySelector('#f-ajustes');
   const sincronizar = () => {
     vista.querySelector('#c-anticipacion').hidden = !f.antes.checked;
+    vista.querySelector('#c-dia-anterior').hidden = !f.diaAnterior.checked;
   };
   sincronizar();
 

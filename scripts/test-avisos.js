@@ -259,6 +259,49 @@ test('producción sin correo real: el aviso espera y llega por push al activar l
   }
 });
 
+test('recordatorio del día anterior: a la hora elegida, aparte del aviso de antes', async () => {
+  const o = await orante({ push: 'ok', diaAnterior: true, horaDiaAnterior: 21 });
+  const zona = 'America/Santiago';
+  const fecha = DateTime.now().setZone(zona).plus({ days: 2 }).set({ hour: 10, minute: 0, second: 0, millisecond: 0 });
+  await evaluacion(await joven('Ana'), fecha.toJSDate());
+  const vispera = fecha.minus({ days: 1 });
+
+  await avisos.enviarAvisosPendientes({ ahora: vispera.set({ hour: 20, minute: 55 }).toJSDate() });
+  assert.equal(pushesPara(o).length, 0, 'antes de las 21:00 del día anterior no sale');
+  await avisos.enviarAvisosPendientes({ ahora: vispera.set({ hour: 21, minute: 2 }).toJSDate() });
+  assert.equal(pushesPara(o).length, 1, 'a las 21:00 del día anterior sale');
+  assert.match(pushesPara(o)[0].payload.body, /^Mañana a las 10:00, Ana Pérez tiene prueba de Matemáticas/);
+  await avisos.enviarAvisosPendientes({ ahora: vispera.set({ hour: 21, minute: 30 }).toJSDate() });
+  assert.equal(pushesPara(o).length, 1, 'no se repite');
+
+  // Al día siguiente, además, llega el aviso de 1 hora antes.
+  await avisos.enviarAvisosPendientes({ ahora: fecha.minus({ minutes: 55 }).toJSDate() });
+  assert.equal(pushesPara(o).length, 2);
+  assert.match(pushesPara(o)[1].payload.body, /^Hoy a las 10:00/);
+});
+
+test('día anterior: no sale si la evaluación se anotó el mismo día, ni si está desactivado', async () => {
+  const conDia = await orante({ push: 'ok', diaAnterior: true, horaDiaAnterior: 20, pushAntes: false });
+  const sinDia = await orante({ push: 'ok', pushAntes: false });
+  const fecha = new Date(Date.now() + 40 * 60 * 1000);
+  await evaluacion(await joven(), fecha);
+  await avisos.enviarAvisosPendientes({ ahora: new Date() });
+  assert.equal(pushesPara(conDia).length, 0);
+  assert.equal(pushesPara(sinDia).length, 0);
+});
+
+test('anticipación de 30 minutos y de 2 horas', async () => {
+  const media = await orante({ push: 'ok', anticipacion: 'TREINTA_MIN' });
+  const dos = await orante({ push: 'ok', anticipacion: 'DOS_HORAS' });
+  const fecha = new Date(Date.now() + 5 * HORA);
+  await evaluacion(await joven(), fecha);
+  await avisos.enviarAvisosPendientes({ ahora: new Date(fecha - 2 * HORA + 60000) });
+  assert.equal(pushesPara(dos).length, 1);
+  assert.equal(pushesPara(media).length, 0);
+  await avisos.enviarAvisosPendientes({ ahora: new Date(fecha - 29 * 60000) });
+  assert.equal(pushesPara(media).length, 1);
+});
+
 test('respeta la anticipación: 3 horas no avisa a las 3 h 10 min, sí a las 2 h 50 min', async () => {
   const o = await orante({ push: 'ok', anticipacion: 'TRES_HORAS' });
   const fecha = new Date(Date.now() + 5 * HORA);

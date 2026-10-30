@@ -22,18 +22,29 @@ const VENTANA_DESPUES_HORAS = 24; // ...y se puede enviar durante las 24 h sigui
 const MAX_INTENTOS_CORREO = 5;
 const ENVIANDO_VENCIDO_MS = 15 * 60 * 1000; // una ejecución que murió a mitad de un envío
 
+const ANTICIPACION_MS = { TREINTA_MIN: HORA / 2, UNA_HORA: HORA, DOS_HORAS: 2 * HORA, TRES_HORAS: 3 * HORA };
+
+// A una hora dada del día anterior a la evaluación, en hora de Chile (Luxon respeta el cambio de horario).
+function horaDelDiaAnterior(fechaHora, hora) {
+  return aLocal(fechaHora).minus({ days: 1 }).set({ hour: hora, minute: 0, second: 0, millisecond: 0 }).toJSDate();
+}
+
 // Momento en que corresponde el aviso "antes" según la anticipación elegida.
 function momentoAntes(fechaHora, anticipacion) {
-  if (anticipacion === 'TRES_HORAS') return new Date(fechaHora.getTime() - 3 * HORA);
-  if (anticipacion === 'NOCHE_ANTERIOR_20H') {
-    // 20:00 del día anterior en hora de Chile (Luxon respeta el cambio de horario).
-    return aLocal(fechaHora).minus({ days: 1 }).set({ hour: 20, minute: 0, second: 0, millisecond: 0 }).toJSDate();
-  }
-  return new Date(fechaHora.getTime() - HORA);
+  if (anticipacion === 'NOCHE_ANTERIOR_20H') return horaDelDiaAnterior(fechaHora, 20); // valor antiguo
+  return new Date(fechaHora.getTime() - (ANTICIPACION_MS[anticipacion] || HORA));
 }
 
 function tocaAntes(ev, prefs, ahora) {
   return momentoAntes(ev.fechaHora, prefs.anticipacion) <= ahora && ahora < ev.fechaHora;
+}
+
+// Recordatorio opcional del día anterior: desde la hora elegida hasta que empieza el día de la
+// evaluación (si se anotó el mismo día, no tiene sentido y no sale).
+function tocaDiaAnterior(ev, prefs, ahora) {
+  if (!prefs.diaAnterior) return false;
+  const inicioDelDia = aLocal(ev.fechaHora).startOf('day').toJSDate();
+  return horaDelDiaAnterior(ev.fechaHora, prefs.horaDiaAnterior ?? 20) <= ahora && ahora < inicioDelDia;
 }
 
 function tocaDespues(ev, ahora) {
@@ -85,8 +96,9 @@ async function terminar(log, ok, error) {
 // el push sale en UNA notificación (2 nombres, o un resumen si son 3 o más). El correo de respaldo
 // sigue siendo uno por evaluación.
 async function avisarOrante({ user, prefs, evs, tipo, ahora, stats }) {
-  const quierePush = tipo === 'ANTES' ? prefs.pushAntes : prefs.pushDespues;
-  const quiereCorreo = (tipo === 'ANTES' ? prefs.emailAntes : prefs.emailDespues) || (quierePush && prefs.tambienCorreo);
+  // DIA_ANTERIOR solo llega aquí si la persona activó ese recordatorio.
+  const quierePush = { ANTES: prefs.pushAntes, DESPUES: prefs.pushDespues, DIA_ANTERIOR: true }[tipo];
+  const quiereCorreo = ({ ANTES: prefs.emailAntes, DESPUES: prefs.emailDespues }[tipo] || false) || (quierePush && prefs.tambienCorreo);
   const clave = (ev, canal) => ({ userId: user.id, evaluationId: ev.id, tipo, canal });
   const pushLogs = new Map();
 
@@ -122,7 +134,7 @@ async function avisarOrante({ user, prefs, evs, tipo, ahora, stats }) {
     const log = await reclamar(clave(ev, 'EMAIL'), ahora);
     if (!log) continue;
     const nombre = nombreVisible(ev.user);
-    const mensaje = tipo === 'ANTES' ? plantillas.avisoAntes(ev, nombre, ahora) : plantillas.avisoDespues(ev, nombre, ahora);
+    const mensaje = tipo === 'DESPUES' ? plantillas.avisoDespues(ev, nombre, ahora) : plantillas.avisoAntes(ev, nombre, ahora);
     // Si tenía push y falló (o venció), el correo trae el enlace para reactivarlo.
     const reactivar = quierePush && (pushLog?.estado === 'FALLO' || prefs.pushNecesitaReactivar);
     try {
@@ -167,12 +179,12 @@ async function enviarAvisosPendientes({ ahora = new Date() } = {}) {
 
   await prisma.evaluation.updateMany({ where: { estado: 'PENDIENTE', fechaHora: { lte: ahora } }, data: { estado: 'REALIZADA' } });
 
-  // La anticipación máxima es "la noche anterior a las 20:00" (hasta ~28 h antes).
+  // La anticipación máxima es el recordatorio del día anterior (hasta ~32 h antes si es temprano).
   const evaluaciones = await prisma.evaluation.findMany({
     where: {
       fechaHora: {
         gte: new Date(ahora.getTime() - (DESPUES_HORAS + VENTANA_DESPUES_HORAS) * HORA),
-        lte: new Date(ahora.getTime() + 30 * HORA)
+        lte: new Date(ahora.getTime() + 32 * HORA)
       }
     },
     include: { user: { select: { id: true, nombre: true, apellido: true } } }
@@ -186,6 +198,8 @@ async function enviarAvisosPendientes({ ahora = new Date() } = {}) {
   for (const o of orantes) {
     const antes = evaluaciones.filter((ev) => ev.userId !== o.user.id && (o.prefs.pushAntes || o.prefs.emailAntes) && tocaAntes(ev, o.prefs, ahora));
     const despues = evaluaciones.filter((ev) => ev.userId !== o.user.id && (o.prefs.pushDespues || o.prefs.emailDespues) && tocaDespues(ev, ahora));
+    const diaAnterior = evaluaciones.filter((ev) => ev.userId !== o.user.id && tocaDiaAnterior(ev, o.prefs, ahora));
+    if (diaAnterior.length) await avisarOrante({ ...o, evs: diaAnterior, tipo: 'DIA_ANTERIOR', ahora, stats });
     if (antes.length) await avisarOrante({ ...o, evs: antes, tipo: 'ANTES', ahora, stats });
     if (despues.length) await avisarOrante({ ...o, evs: despues, tipo: 'DESPUES', ahora, stats });
   }
@@ -266,4 +280,4 @@ async function resumenSemanal({ ahora = new Date() } = {}) {
   }
 }
 
-module.exports = { momentoAntes, enviarAvisosPendientes, tareasDiarias, resumenSemanal };
+module.exports = { momentoAntes, horaDelDiaAnterior, enviarAvisosPendientes, tareasDiarias, resumenSemanal };

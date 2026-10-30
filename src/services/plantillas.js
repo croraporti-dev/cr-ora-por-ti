@@ -65,16 +65,17 @@ function avisoDespues(ev, nombre, ahora = new Date()) {
 }
 
 // Push agrupado cuando coinciden varias evaluaciones en el mismo ciclo. items = [{ ev, nombre }]
+// tipo: ANTES o DIA_ANTERIOR (para orar) | DESPUES (para preguntar cómo le fue).
 // 1 → el aviso normal; 2 → con los dos nombres; 3 o más → resumen (con nombres sería demasiado largo).
 function avisoPushAgrupado(tipo, items, ahora = new Date()) {
   if (items.length === 1) {
     const { ev, nombre } = items[0];
-    return (tipo === 'ANTES' ? avisoAntes(ev, nombre, ahora) : avisoDespues(ev, nombre, ahora)).push;
+    return (tipo === 'DESPUES' ? avisoDespues(ev, nombre, ahora) : avisoAntes(ev, nombre, ahora)).push;
   }
   const tag = `${tipo.toLowerCase()}-grupo-${items.map((i) => i.ev.id).sort().join('-').slice(0, 60)}`;
   if (items.length === 2) {
     const [a, b] = items;
-    if (tipo === 'ANTES') {
+    if (tipo !== 'DESPUES') {
       const cuando = (ev) => `${diaRelativo(ev.fechaHora, ahora)} a las ${horaCorta(ev.fechaHora)}`;
       const mismaHora = cuando(a.ev) === cuando(b.ev);
       const body = mismaHora
@@ -90,8 +91,9 @@ function avisoPushAgrupado(tipo, items, ahora = new Date()) {
     };
   }
   const n = items.length;
-  return tipo === 'ANTES'
-    ? { title: `Ora por ${n} personas`, body: `${n} personas tienen una evaluación pronto. Entra a la agenda para ver los detalles y orar por cada una.`, url: '/#/agenda', tag }
+  const cuando = tipo === 'DIA_ANTERIOR' ? 'mañana' : 'pronto';
+  return tipo !== 'DESPUES'
+    ? { title: `Ora por ${n} personas`, body: `${n} personas tienen una evaluación ${cuando}. Entra a la agenda para ver los detalles y orar por cada una.`, url: '/#/agenda', tag }
     : { title: '¿Cómo les fue?', body: `${n} personas tuvieron una evaluación. Entra a la agenda para ver cómo les fue y escribirles.`, url: '/#/agenda', tag };
 }
 

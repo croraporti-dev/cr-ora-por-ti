@@ -17,7 +17,7 @@ function guiaIphone(iosViejo) {
       <ol class="pasos">
         <li>${ICONO_COMPARTIR}<div><strong>1. Toca Compartir</strong><br><span class="chico">El cuadrado con flecha en la barra de Safari. Si no lo ves, toca ··· primero.</span></div></li>
         <li>${ICONO_AGREGAR}<div><strong>2. «Agregar a pantalla de inicio»</strong><br><span class="chico">Baja en la lista hasta encontrarlo y toca «Agregar».</span></div></li>
-        <li>${ICONO_APP}<div><strong>3. Abre «CR ora» desde el ícono</strong><br><span class="chico">Ahí verás el botón «Activar avisos en este dispositivo».</span></div></li>
+        <li>${ICONO_APP}<div><strong>3. Abre «CR Juntos» desde el ícono</strong><br><span class="chico">Ahí verás el botón «Activar avisos en este dispositivo».</span></div></li>
       </ol>
       <p class="chico">Dentro de la app instalada entra con tu correo y contraseña (la app guarda su sesión aparte de Safari).</p>
     </div>`;
@@ -25,7 +25,7 @@ function guiaIphone(iosViejo) {
 
 function bloqueado(e) {
   const como = e.ios
-    ? 'Abre <strong>Ajustes › Notificaciones › CR ora</strong> y activa «Permitir notificaciones».'
+    ? 'Abre <strong>Ajustes › Notificaciones › CR Juntos</strong> y activa «Permitir notificaciones».'
     : 'Toca el candado (o ⋮ › Información del sitio) junto a la dirección, entra a <strong>Notificaciones</strong> y elige «Permitir». Luego vuelve aquí.';
   return `<div class="tarjeta"><h2 style="margin-top:0">Los avisos están bloqueados</h2><p>${como}</p>
     <button class="btn secundario bloque" data-accion="reintentar" style="margin-top:12px">Ya los permití</button></div>`;

@@ -1,4 +1,4 @@
-# CR ora por ti
+# CR Juntos en la prueba
 
 PWA para que los jóvenes de CR registren sus pruebas, exámenes y trabajos, y un pequeño grupo
 ore por ellos antes y converse con ellos después. Avisos por **push** (principal) y **correo** (respaldo).
@@ -62,7 +62,7 @@ Revisa [.env.example](.env.example); ahí está explicada cada una.
 | `SESSION_SECRET` | Firma las sesiones y los enlaces. Largo y aleatorio. |
 | `CRON_SECRET` | Secreto del endpoint del cron. |
 | `MAIL_PROVIDER` | `brevo`, `resend` o `consola`. |
-| `MAIL_FROM_EMAIL`, `MAIL_FROM_NAME` | Remitente: "CR ora por ti" <correo verificado>. |
+| `MAIL_FROM_EMAIL`, `MAIL_FROM_NAME` | Remitente: "CR Juntos en la prueba" <correo verificado>. |
 | `BREVO_API_KEY` / `RESEND_API_KEY` | Clave del proveedor elegido. |
 | `VAPID_*` | Claves de Web Push (Etapa 4). |
 
@@ -192,7 +192,7 @@ Usa la base `cr_ora_test`, que **se borra en cada ejecución**. Para usar otra, 
 
 ## App instalable y avisos push
 
-- `public/manifest.webmanifest` incluye nombre "CR ora por ti", short_name "CR ora", `display: standalone` e íconos 192, 512 y maskable. Para regenerar los íconos: `npm run iconos`.
+- `public/manifest.webmanifest` incluye nombre "CR Juntos en la prueba", short_name "CR Juntos", `display: standalone` e íconos 192, 512 y maskable. Para regenerar los íconos: `npm run iconos`.
 - `public/sw.js` es el service worker. Recibe el push, abre la tarjeta de la evaluación al tocar el aviso y registra el ánimo con los botones "¿Cómo te fue?" (en Android). También permite abrir la app sin conexión.
 - El permiso se pide **solo** al tocar "Activar avisos en este dispositivo", nunca al cargar la página.
 - En **Ajustes** (orantes y líder) y en **Mis evaluaciones** (jóvenes) hay un indicador "Avisos en este dispositivo: activos / no activos" con los botones "Activar avisos en este dispositivo", "Enviar notificación de prueba" y "Desactivar".
@@ -201,7 +201,7 @@ Usa la base `cr_ora_test`, que **se borra en cada ejecución**. Para usar otra, 
 ### iPhone
 
 - Las push solo funcionan desde **iOS 16.4**, y con la app **agregada a la pantalla de inicio** y abierta desde su ícono.
-- Si se abre en Safari sin instalar, la app muestra una guía de 3 pasos: Compartir → «Agregar a pantalla de inicio» → abrir «CR ora» desde el ícono → activar avisos.
+- Si se abre en Safari sin instalar, la app muestra una guía de 3 pasos: Compartir → «Agregar a pantalla de inicio» → abrir «CR Juntos» desde el ícono → activar avisos.
 - En iPhone los botones dentro de la notificación no aparecen: tocar el aviso "¿Cómo te fue?" abre la app, donde están los 3 botones.
 - La app instalada guarda su sesión aparte de Safari: hay que entrar con correo y contraseña dentro de la app.
 
@@ -241,9 +241,9 @@ Supabase pausa los proyectos gratis tras 7 días sin uso. El cron consulta la ba
 
 ### 2. Correo con Brevo (recomendado para empezar)
 1. Crea una cuenta gratis en https://www.brevo.com (300 correos al día).
-2. Ve a **Senders, Domains & Dedicated IPs → Senders → Add a sender**, ingresa el correo remitente y nombre "CR ora por ti", y verifícalo con el código que te llega.
+2. Ve a **Senders, Domains & Dedicated IPs → Senders → Add a sender**, ingresa el correo remitente y nombre "CR Juntos en la prueba", y verifícalo con el código que te llega.
 3. Ve a **SMTP & API → API Keys → Generate a new API key** y cópiala en `BREVO_API_KEY`.
-4. En las variables: `MAIL_PROVIDER=brevo`, `MAIL_FROM_EMAIL=<el remitente verificado>`, `MAIL_FROM_NAME=CR ora por ti`.
+4. En las variables: `MAIL_PROVIDER=brevo`, `MAIL_FROM_EMAIL=<el remitente verificado>`, `MAIL_FROM_NAME=CR Juntos en la prueba`.
 
 Para que **no caigan en spam**:
 - Con un remitente `@gmail.com` funciona para empezar, pero Gmail y Outlook desconfían de correos "de gmail" enviados por otro servidor.
@@ -277,10 +277,10 @@ Para que **no caigan en spam**:
 
 ### 5. Prueba en un celular real (cierra la Etapa 4)
 - [ ] En el celular, abre la URL de Vercel (en iPhone, con Safari).
-- [ ] Agrégala a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y ábrela desde el ícono «CR ora».
+- [ ] Agrégala a la pantalla de inicio (en iPhone siguiendo la guía; en Android con "Instalar app") y ábrela desde el ícono «CR Juntos».
 - [ ] Entra con tu correo y contraseña.
 - [ ] En Ajustes, toca **Activar avisos en este dispositivo** y acepta.
-- [ ] Toca **Enviar notificación de prueba**: debe llegarte «CR ora por ti» en segundos, incluso con la app cerrada.
+- [ ] Toca **Enviar notificación de prueba**: debe llegarte «CR Juntos en la prueba» en segundos, incluso con la app cerrada.
 - [ ] Al tocar la notificación, se abre la app.
 - [ ] Un joven de prueba anota una evaluación para dentro de ~1 hora. En el siguiente ciclo del cron te llega «Ora por …», y al tocarlo se abre esa tarjeta en la agenda.
 

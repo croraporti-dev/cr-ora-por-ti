@@ -1,4 +1,4 @@
-// CR ora por ti — esquema de datos.
+// CR Juntos en la prueba — esquema de datos.
 // Todas las fechas se guardan en UTC; se muestran en America/Santiago.
 // Por diseño NO existe ningún campo para notas ni calificaciones.
 

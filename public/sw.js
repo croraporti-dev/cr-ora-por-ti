@@ -1,5 +1,5 @@
-// Service worker de CR ora por ti: recibe los avisos push y deja la app abriendo sin conexión.
-const VERSION = 'cr-ora-v9';
+// Service worker de CR Juntos en la prueba: recibe los avisos push y deja la app abriendo sin conexión.
+const VERSION = 'cr-juntos-v1';
 const ARCHIVOS = [
   '/',
   '/index.html',
@@ -60,7 +60,7 @@ self.addEventListener('push', (event) => {
   } catch {
     datos = { body: event.data ? event.data.text() : '' };
   }
-  const titulo = datos.title || 'CR ora por ti';
+  const titulo = datos.title || 'CR Juntos en la prueba';
   const opciones = {
     body: datos.body || '',
     icon: '/icons/icon-192.png',

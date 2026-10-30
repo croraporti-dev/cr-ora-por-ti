@@ -173,7 +173,7 @@ export async function vistaLider() {
           titulo: `Acceso para ${m.nombre}`,
           texto: 'Con este enlace podrá crear una contraseña nueva. Sirve una sola vez y vence en 24 horas. Envíaselo solo a esa persona.',
           enlace: r.enlace,
-          mensaje: `Hola ${m.nombre}, con este enlace puedes crear tu contraseña para CR ora por ti:`
+          mensaje: `Hola ${m.nombre}, con este enlace puedes crear tu contraseña para CR Juntos en la prueba:`
         });
       });
       return;

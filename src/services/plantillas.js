@@ -1,7 +1,7 @@
 // Textos de los correos. Breves, amables y sin presión.
 const config = require('../config');
 
-const MARCA = 'CR ora por ti';
+const MARCA = 'CR Juntos en la prueba';
 
 function escapar(s) {
   return String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);

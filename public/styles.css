@@ -1,4 +1,4 @@
-/* CR ora por ti — paleta de CR Digital, pensada para celular */
+/* CR Juntos en la prueba — paleta de CR Digital, pensada para celular */
 :root {
   --primary: #2563eb;
   --primary-hover: #1d4ed8;
@@ -68,6 +68,10 @@ a { color: var(--primary); }
   .barra { display: grid; grid-template-columns: 44px 1fr 44px; gap: 8px; }
   .btn-menu { display: inline-flex; grid-column: 3; grid-row: 1; }
   .marca { grid-column: 2; grid-row: 1; justify-self: center; }
+  /* El nombre es largo: en celular se achica un poco para que quepa en una línea junto al logo. */
+  .marca { gap: 8px; }
+  .marca-icono { width: 28px; height: auto; }
+  .marca-texto { font-size: 0.8rem; letter-spacing: 0.06em; }
   .nav {
     position: absolute; top: 100%; left: 0; right: 0;
     flex-direction: column; gap: 2px; padding: 8px 12px 12px;

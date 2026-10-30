@@ -2,7 +2,7 @@
   "name": "cr-ora-por-ti",
   "version": "0.1.0",
   "private": true,
-  "description": "CR ora por ti: agenda de oración por las evaluaciones de los jóvenes",
+  "description": "CR Juntos en la prueba: agenda de oración por las evaluaciones de los jóvenes",
   "main": "server.js",
   "type": "commonjs",
   "engines": {

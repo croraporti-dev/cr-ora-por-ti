@@ -19,7 +19,7 @@ const config = {
   mail: {
     proveedor: (process.env.MAIL_PROVIDER || (esProduccion ? 'brevo' : 'consola')).toLowerCase(),
     fromEmail: process.env.MAIL_FROM_EMAIL || '',
-    fromName: process.env.MAIL_FROM_NAME || 'CR ora por ti',
+    fromName: process.env.MAIL_FROM_NAME || 'CR Juntos en la prueba',
     brevoApiKey: process.env.BREVO_API_KEY || '',
     resendApiKey: process.env.RESEND_API_KEY || ''
   },

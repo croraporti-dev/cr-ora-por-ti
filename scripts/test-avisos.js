@@ -112,7 +112,7 @@ test('push a quien tiene suscripción, correo a quien no; una sola vez aunque el
   assert.equal(correosPara(sinPush).length, 1, 'quien no tiene push recibe 1 correo');
   assert.match(pushesPara(lider)[0].payload.body, /Camila Pérez tiene prueba de Matemáticas\. Es un buen momento para orar por Camila Pérez.$/);
   assert.match(pushesPara(lider)[0].payload.url, /#\/agenda\?ev=/);
-  assert.match(correosPara(sinPush)[0].subject, /^CR ora por ti: (hoy|mañana) Camila Pérez tiene prueba de Matemáticas$/);
+  assert.match(correosPara(sinPush)[0].subject, /^CR Juntos en la prueba: (hoy|mañana) Camila Pérez tiene prueba de Matemáticas$/);
 });
 
 test('ejecuciones en paralelo tampoco duplican', async () => {

@@ -25,7 +25,8 @@
     "prod:crear-lider": "node --env-file=.env.produccion scripts/crear-lider.js",
     "vercel:env": "node scripts/vercel-env.js",
     "demo": "node scripts/demo.js",
-    "prod:demo": "node --env-file=.env.produccion scripts/demo.js"
+    "prod:demo": "node --env-file=.env.produccion scripts/demo.js",
+    "qr": "node scripts/generar-qr.js"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
@@ -42,6 +43,7 @@
   },
   "devDependencies": {
     "embedded-postgres": "^18.4.0-beta.17",
+    "qrcode": "^1.5.4",
     "sharp": "^0.35.5"
   }
 }

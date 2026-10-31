@@ -13,11 +13,21 @@ async function consumir(clave, maximo, ventanaSegundos) {
   return filas[0].count <= maximo;
 }
 
+// Lanzamiento: hasta esta fecha los límites por red se multiplican por 10 (mucha gente en el mismo
+// Wi-Fi o datos móviles a la vez). Después vuelven solos a lo normal; no hay que acordarse de cambiarlo.
+// Los límites por correo (intentos de contraseña) no cambian.
+const HOLGURA_HASTA = new Date(process.env.LIMITES_RELAJADOS_HASTA || '2026-11-02T03:00:00Z'); // lun 02/11 00:00 en Chile
+const FACTOR_HOLGURA = 10;
+
+function maximoVigente(maximo) {
+  return Date.now() < HOLGURA_HASTA.getTime() ? maximo * FACTOR_HOLGURA : maximo;
+}
+
 // Middleware por IP. `nombre` separa los contadores de cada endpoint.
 function limitarPorIp(nombre, maximo, ventanaSegundos) {
   return async (req, res, next) => {
     try {
-      if (await consumir(`${nombre}:ip:${req.ip}`, maximo, ventanaSegundos)) return next();
+      if (await consumir(`${nombre}:ip:${req.ip}`, maximoVigente(maximo), ventanaSegundos)) return next();
       res.status(429).json({ error: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.' });
     } catch (err) {
       next(err);

@@ -259,7 +259,7 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
     } else if (boton.dataset.accion === 'editar') {
       cajaForm.innerHTML = formularioEvaluacion(e);
       conectarFormulario();
-      cajaForm.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      cajaForm.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     } else if (boton.dataset.accion === 'borrar') {
       if (!(await confirmar(`Se borrará tu ${queTiene(e)} y dejará de aparecer para el grupo.`, { titulo: '¿Borrar evaluación?', aceptar: 'Borrar', peligro: true }))) return;
       await conCarga(boton, null, async () => {

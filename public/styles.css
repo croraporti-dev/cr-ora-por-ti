@@ -385,9 +385,9 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .segmentado { display: grid; grid-template-columns: 1fr 1fr; background: var(--border); border-radius: 12px; padding: 4px; margin-bottom: 8px; }
 .segmentado button {
   font: inherit; font-weight: 700; font-size: 0.9rem; min-height: 40px;
-  border: none; background: none; border-radius: 9px; color: var(--text-muted); cursor: pointer;
+  border: none; background: none; border-radius: 9px; color: var(--text-main); opacity: 0.8; cursor: pointer;
 }
-.segmentado button[aria-pressed=true] { background: var(--surface); color: var(--text-main); box-shadow: var(--shadow); }
+.segmentado button[aria-pressed=true] { opacity: 1; background: var(--surface); color: var(--text-main); box-shadow: var(--shadow); }
 
 .dia h2 { font-size: 0.95rem; margin: 18px 0 8px; color: var(--text-muted); text-transform: none; }
 .filas { list-style: none; display: grid; gap: 8px; }
@@ -573,4 +573,23 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-old(vista), ::view-transition-new(vista) { animation: none; }
   .btn.orado.recien, .btn.orado.recien svg, .contador.latido { animation: none; }
+}
+
+/* ---------- Accesibilidad ---------- */
+/* Foco visible para quien navega con teclado o lector de pantalla (no aparece al tocar con el dedo). */
+:focus-visible { outline: 3px solid var(--foco); outline-offset: 2px; }
+.tabs a:focus-visible, .plegable > summary:focus-visible { outline: 3px solid var(--foco); outline-offset: -3px; }
+.interruptor input:focus-visible { outline: 3px solid var(--foco); outline-offset: 3px; box-shadow: none; }
+input:focus-visible, select:focus-visible { outline: none; } /* ya tienen borde y halo propios */
+
+/* Áreas táctiles de al menos 44 px. */
+.marca { min-height: 44px; }
+.segmentado button { min-height: 44px; }
+.btn-whatsapp { min-height: 44px; padding: 0 14px; }
+.ev-contacto a[href^="tel:"] { display: inline-flex; align-items: center; min-height: 44px; }
+.btn.chico-btn { min-height: 44px; }
+
+/* Menos movimiento: si el celular lo pide, nada se anima ni se desliza. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }

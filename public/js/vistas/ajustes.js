@@ -2,6 +2,7 @@
 import { api } from '../api.js';
 import { pintar, esc, avisar, conCarga, confirmar } from '../ui.js';
 import { montarTarjetaAvisos } from './avisos.js';
+import * as push from '../push.js';
 
 const ANTICIPACIONES = [
   ['TREINTA_MIN', '30 minutos antes'],
@@ -10,6 +11,43 @@ const ANTICIPACIONES = [
   ['TRES_HORAS', '3 horas antes']
 ];
 const HORAS_DIA_ANTERIOR = [17, 18, 19, 20, 21, 22];
+
+function interruptor(nombre, activo, titulo, detalle) {
+  return `
+    <label class="interruptor">
+      <span><strong>${titulo}</strong><span class="chico">${detalle}</span></span>
+      <input type="checkbox" role="switch" name="${nombre}" ${activo ? 'checked' : ''}>
+    </label>`;
+}
+
+// Pasos por si los avisos no llegan o llegan tarde. Se abre primero el del sistema del celular.
+function ayudaAvisos() {
+  const { ios, android } = push.entorno();
+  const iphone = `
+    <details class="ayuda" ${ios ? 'open' : ''}>
+      <summary>En iPhone</summary>
+      <ol>
+        <li>Abre la app desde el ícono «CR Juntos» de tu pantalla de inicio (no desde Safari).</li>
+        <li>En <strong>Ajustes › Notificaciones › CR Juntos</strong>, activa «Permitir notificaciones».</li>
+        <li>Si usas un modo de <strong>Concentración</strong> (No molestar, Dormir), agrega CR Juntos a las apps permitidas.</li>
+      </ol>
+    </details>`;
+  const androide = `
+    <details class="ayuda" ${android ? 'open' : ''}>
+      <summary>En Android</summary>
+      <ol>
+        <li>Instala la app: en Chrome toca <strong>⋮ › Instalar app</strong> (o «Agregar a la pantalla principal»).</li>
+        <li>Para que no lleguen tarde: <strong>Ajustes › Apps › Chrome › Batería</strong> y elige «Sin restricciones».</li>
+        <li>En <strong>Ajustes › Apps › Chrome › Notificaciones</strong>, revisa que estén permitidas.</li>
+      </ol>
+    </details>`;
+  return `
+    <div class="tarjeta">
+      <h2 style="margin-top:0">¿No te llegan los avisos o llegan tarde?</h2>
+      <p class="chico" style="margin-bottom:8px">Casi siempre es un ajuste del celular. Revisa estos pasos:</p>
+      ${ios ? iphone + androide : androide + iphone}
+    </div>`;
+}
 
 function prefsDesdeFormulario(f) {
   const antes = f.antes.checked;
@@ -28,7 +66,7 @@ function prefsDesdeFormulario(f) {
 }
 
 export async function vistaAjustes({ params, user, irA }) {
-  const vista = pintar('<p class="cargando">Cargando…</p>');
+  const vista = pintar('<h1>Ajustes</h1><div class="esqueleto esqueleto-tarjeta"></div><div class="esqueleto esqueleto-tarjeta alta"></div>');
   let datos;
   try {
     datos = await api('/ajustes');
@@ -45,20 +83,25 @@ export async function vistaAjustes({ params, user, irA }) {
     <div id="caja-push"></div>
     <form id="f-ajustes">
       <div class="tarjeta">
-        <h2 style="margin-top:0">¿Cuándo avisarte?</h2>
-        <p class="chico" style="margin-bottom:14px">Puedes activar uno, varios o ninguno.</p>
-        <label class="check"><input type="checkbox" name="diaAnterior" ${prefs.diaAnterior ? 'checked' : ''}><span><strong>El día anterior</strong>, para tenerlo presente</span></label>
-        <label class="campo" id="c-dia-anterior" style="margin:-4px 0 14px 34px"><span class="chico">¿A qué hora?</span>
+        <div class="titulo-con-estado">
+          <h2>¿Cuándo avisarte?</h2>
+          <span class="estado-guardado" id="guardado" role="status" aria-live="polite"></span>
+        </div>
+        <p class="chico" style="margin-bottom:6px">Puedes activar uno, varios o ninguno. Se guarda solo.</p>
+        ${interruptor('diaAnterior', prefs.diaAnterior, 'El día anterior', 'Para tenerlo presente y orar con tiempo.')}
+        <label class="campo sub-opcion" id="c-dia-anterior"><span class="chico">¿A qué hora?</span>
           <select name="horaDiaAnterior">${HORAS_DIA_ANTERIOR.map((h) => `<option value="${h}" ${h === prefs.horaDiaAnterior ? 'selected' : ''}>${h}:00</option>`).join('')}</select>
         </label>
-        <label class="check"><input type="checkbox" name="antes" ${antes ? 'checked' : ''}><span><strong>Antes de la evaluación</strong>, para orar en el momento</span></label>
-        <label class="campo" id="c-anticipacion" style="margin:-4px 0 14px 34px"><span class="chico">¿Con cuánta anticipación?</span>
+        ${interruptor('antes', antes, 'Antes de la evaluación', 'Para orar justo en el momento.')}
+        <label class="campo sub-opcion" id="c-anticipacion"><span class="chico">¿Con cuánta anticipación?</span>
           <select name="anticipacion">${ANTICIPACIONES.map(([k, t]) => `<option value="${k}" ${k === prefs.anticipacion ? 'selected' : ''}>${t}</option>`).join('')}</select>
         </label>
-        <label class="check"><input type="checkbox" name="despues" ${despues ? 'checked' : ''}><span><strong>Después</strong> (2 horas más tarde), para escribirle y preguntarle cómo le fue</span></label>
+        ${interruptor('despues', despues, 'Después', '2 horas más tarde, para escribirle y preguntarle cómo le fue.')}
       </div>
       <p class="chico">Recibirás avisos de todos los jóvenes del grupo como notificaciones en este dispositivo.</p>
     </form>
+
+    ${ayudaAvisos()}
 
     <form id="f-clave" class="tarjeta" novalidate style="margin-top:14px">
       <h2 style="margin-top:0">Cambiar contraseña</h2>
@@ -98,12 +141,21 @@ export async function vistaAjustes({ params, user, irA }) {
   };
   sincronizar();
 
+  const guardado = vista.querySelector('#guardado');
+  let borrarEstado;
   f.addEventListener('change', async () => {
     sincronizar();
+    clearTimeout(borrarEstado);
+    guardado.className = 'estado-guardado';
+    guardado.textContent = 'Guardando…';
     try {
       await api('/ajustes', { metodo: 'PUT', datos: prefsDesdeFormulario(f) });
-      avisar('Guardado');
+      guardado.classList.add('listo');
+      guardado.textContent = 'Guardado';
+      borrarEstado = setTimeout(() => { guardado.textContent = ''; }, 2500);
     } catch (err) {
+      guardado.classList.add('error-guardado');
+      guardado.textContent = 'No se guardó';
       avisar(err.message);
     }
   });

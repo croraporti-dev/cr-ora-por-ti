@@ -1,7 +1,8 @@
 // Tema de la app: 'auto' sigue al celular; 'light' u 'dark' lo fija en este dispositivo.
 // index.html lo aplica antes de pintar (para que no parpadee); aquí se cambia desde Ajustes.
 const CLAVE = 'cr_tema';
-const COLOR_BARRA = { light: '#2563eb', dark: '#151e2e' };
+// Mismo color que la barra de arriba de la app, para que la barra del celular no resalte.
+const COLOR_BARRA = { light: '#ffffff', dark: '#151e2e' };
 
 export function leerTema() {
   try {

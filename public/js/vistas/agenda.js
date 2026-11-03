@@ -1,7 +1,7 @@
 // Agenda de oración (orantes y líder): pensada para muchas pruebas a la vez.
 // Tira con los próximos 7 días, filas compactas que se expanden, "Ya oré" como estado y filtro.
 import { api, memoria } from '../api.js';
-import { pintar, esc, avisar, confirmar } from '../ui.js';
+import { pintar, esc, avisar, confirmar, ubicarMenu } from '../ui.js';
 import { ANIMOS, nombreTipo } from '../textos.js';
 import { partesChile, fechaChileEn, hoyChile, aDMA } from '../fechas.js';
 
@@ -303,6 +303,7 @@ export async function vistaAgenda({ user, params, avisos }) {
       const abrir = menu.hidden;
       cerrarMenus(menu);
       menu.hidden = !abrir;
+      ubicarMenu(menu);
       boton.setAttribute('aria-expanded', String(abrir));
       return;
     }

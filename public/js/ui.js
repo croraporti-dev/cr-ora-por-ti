@@ -52,6 +52,13 @@ export function avisarConAccion(mensaje, textoBoton, ms = 6000) {
   });
 }
 
+// Menú de tres puntos: se abre hacia la izquierda, salvo que no quepa (botón cerca del borde izquierdo).
+export function ubicarMenu(lista) {
+  lista.classList.remove('hacia-derecha');
+  if (lista.hidden) return;
+  if (lista.getBoundingClientRect().left < 8) lista.classList.add('hacia-derecha');
+}
+
 // Ejecuta una acción async desactivando el botón y mostrando el error en `cajaError`.
 export async function conCarga(boton, cajaError, accion) {
   const textoOriginal = boton.textContent;

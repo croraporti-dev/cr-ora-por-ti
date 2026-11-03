@@ -8,7 +8,7 @@ import { montarTarjetaAvisos } from './avisos.js';
 const PASOS_BIENVENIDA = [
   ['Anota tu prueba', 'Qué tienes, el día y la hora. Toma menos de un minuto.'],
   ['Oramos por ti', 'El grupo recibe un aviso y ora por ti antes de que empieces.'],
-  ['Te preguntamos cómo te fue', 'Después alguien te escribe para saber cómo te fue.']
+  ['Cuéntanos cómo te fue', 'Después de tu prueba puedes contarnos aquí mismo cómo te fue, para celebrar contigo o seguir orando.']
 ];
 
 export function vistaBienvenida() {
@@ -16,7 +16,7 @@ export function vistaBienvenida() {
     <section class="bienvenida">
       <p class="bienvenida-sobre">Para los jóvenes de CR</p>
       <h1>Juntos en cada prueba</h1>
-      <p class="sub">Anota tus pruebas, exámenes y trabajos, y un grupo de la iglesia orará por ti ese día.</p>
+      <p class="sub">Anota tus pruebas, exámenes y trabajos, y oraremos por ti.</p>
       <a class="btn bloque btn-grande" href="#/mis">Anotar mi prueba</a>
       <p class="chico bienvenida-nota">Sin cuenta ni contraseña. Solo tu nombre y tu celular.</p>
     </section>

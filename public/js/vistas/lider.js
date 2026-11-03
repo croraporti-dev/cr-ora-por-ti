@@ -1,6 +1,6 @@
 // Grupo (rol líder): resumen de la semana, invitación, solicitudes y miembros en secciones plegables.
 import { api, memoria } from '../api.js';
-import { pintar, esc, conCarga, avisar, avisarConAccion, confirmar, mostrarEnlace } from '../ui.js';
+import { pintar, esc, conCarga, avisar, avisarConAccion, confirmar, mostrarEnlace, ubicarMenu } from '../ui.js';
 import { hoyChile } from '../fechas.js';
 
 const DIAS_CORTOS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -258,6 +258,7 @@ export async function vistaLider() {
       const abrir = lista.hidden;
       cerrarMenus(lista);
       lista.hidden = !abrir;
+      ubicarMenu(lista);
       boton.setAttribute('aria-expanded', String(abrir));
       return;
     }

@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>CR Juntos en la prueba</title>
   <meta name="description" content="Agenda de oración por las pruebas y exámenes de los jóvenes de CR.">
-  <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151e2e" media="(prefers-color-scheme: dark)">
   <script>
     // Tema elegido en Ajustes (Claro u Oscuro), aplicado antes de pintar para que no parpadee.
@@ -13,7 +13,7 @@
       var tema = localStorage.getItem('cr_tema');
       if (tema === 'light' || tema === 'dark') {
         document.documentElement.dataset.theme = tema;
-        document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.content = tema === 'dark' ? '#151e2e' : '#2563eb'; });
+        document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.content = tema === 'dark' ? '#151e2e' : '#ffffff'; });
       }
     } catch (e) {}
   </script>

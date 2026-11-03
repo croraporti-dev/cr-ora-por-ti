@@ -636,3 +636,4 @@ input:focus-visible, select:focus-visible { outline: none; } /* ya tienen borde 
   *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
 }
 .segmentado.tres { grid-template-columns: repeat(3, 1fr); }
+.menu-mas-lista.hacia-derecha { right: auto; left: 0; }

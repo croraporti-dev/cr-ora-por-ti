@@ -312,10 +312,18 @@ export async function vistaAgenda({ user, params, avisos }) {
     boton.disabled = true;
     try {
       if (accion === 'orar') {
+        // Al marcar, una vibración corta confirma el toque al instante (solo Android la soporta).
+        if (!e.yoOre) navigator.vibrate?.(12);
         const r = await api(`/agenda/${e.id}/ore`, { metodo: e.yoOre ? 'DELETE' : 'POST' });
         Object.assign(e, { yoOre: r.yoOre, oraciones: r.oraciones });
         pintarLista();
-        if (r.yoOre) avisar('Gracias por orar');
+        if (r.yoOre) {
+          vista.querySelector(`button[data-accion="orar"][data-id="${CSS.escape(e.id)}"]`)?.classList.add('recien');
+          const contador = vista.querySelector('#contador');
+          contador.classList.add('latido');
+          setTimeout(() => contador.classList.remove('latido'), 700);
+          avisar('Gracias por orar');
+        }
       } else if (accion === 'quitar') {
         cerrarMenus();
         const ok = await confirmar(`Se quitará de la agenda la evaluación de ${e.joven.nombre}. Úsalo para entradas falsas o repetidas.`, { titulo: '¿Quitar evaluación?', aceptar: 'Quitar', peligro: true });

@@ -487,3 +487,25 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 @media (prefers-reduced-motion: reduce) {
   .interruptor input, .interruptor input::before { transition: none; }
 }
+
+/* Transición entre pantallas: solo el contenido; la barra de arriba y las pestañas quedan quietas. */
+#vista { view-transition-name: vista; }
+.barra { view-transition-name: barra; }
+.tabs { view-transition-name: tabs; }
+::view-transition-old(vista) { animation: vista-sale 120ms ease-out both; }
+::view-transition-new(vista) { animation: vista-entra 200ms ease-out both; }
+@keyframes vista-sale { to { opacity: 0; } }
+@keyframes vista-entra { from { opacity: 0; transform: translateY(8px); } }
+
+/* "Ya oré": el botón late una vez y el contador se ilumina. */
+.btn.orado.recien { animation: orado-pop 420ms cubic-bezier(.34, 1.56, .64, 1); }
+.btn.orado.recien svg { animation: orado-check 360ms 80ms ease-out both; }
+@keyframes orado-pop { 0% { transform: scale(0.92); } 55% { transform: scale(1.06); } 100% { transform: scale(1); } }
+@keyframes orado-check { from { opacity: 0; transform: scale(0.4) rotate(-20deg); } }
+.contador.latido { animation: contador-latido 600ms ease-out; }
+@keyframes contador-latido { 0% { box-shadow: 0 0 0 0 rgb(245 158 11 / 0.45); } 100% { box-shadow: 0 0 0 10px rgb(245 158 11 / 0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(vista), ::view-transition-new(vista) { animation: none; }
+  .btn.orado.recien, .btn.orado.recien svg, .contador.latido { animation: none; }
+}

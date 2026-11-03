@@ -3,9 +3,17 @@ export function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
 }
 
+// Quien espera el primer pintado de la pantalla siguiente (para la transición entre pantallas).
+let alPintar = null;
+export function esperarPintado() {
+  return new Promise((resolve) => { alPintar = resolve; });
+}
+
 export function pintar(html) {
   const vista = document.getElementById('vista');
   vista.innerHTML = html;
+  alPintar?.();
+  alPintar = null;
   return vista;
 }
 

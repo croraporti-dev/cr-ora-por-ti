@@ -1,5 +1,5 @@
 import { api } from './api.js';
-import { esc } from './ui.js';
+import { esc, esperarPintado } from './ui.js';
 import { vistaLogin, vistaClave } from './vistas/login.js';
 import { vistaBienvenida, vistaMis } from './vistas/joven.js';
 import { vistaAgenda } from './vistas/agenda.js';
@@ -127,11 +127,22 @@ async function render() {
   document.getElementById('vista').focus({ preventScroll: true });
 }
 
+// Al cambiar de pantalla, el contenido aparece con un fundido suave (si el navegador lo soporta
+// y la persona no pidió menos movimiento). La transición espera solo el primer pintado, no la carga de datos.
+function conTransicion() {
+  if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return render();
+  document.startViewTransition(() => {
+    const pintado = esperarPintado();
+    const listo = render().catch(() => {});
+    return Promise.race([pintado, listo, new Promise((r) => setTimeout(r, 300))]);
+  });
+}
+
 async function iniciar() {
   push.registrarServiceWorker();
   push.precargarClave();
   await cargarSesion();
-  window.addEventListener('hashchange', render);
+  window.addEventListener('hashchange', conTransicion);
   // Al tocar una notificación con la app ya abierta, el service worker pide ir a esa tarjeta.
   navigator.serviceWorker?.addEventListener('message', (e) => {
     if (e.data?.tipo === 'navegar') location.hash = new URL(e.data.url, location.origin).hash;

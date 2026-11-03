@@ -3,6 +3,7 @@ import { api } from '../api.js';
 import { pintar, esc, avisar, conCarga, confirmar } from '../ui.js';
 import { montarTarjetaAvisos } from './avisos.js';
 import * as push from '../push.js';
+import { leerTema, aplicarTema } from '../tema.js';
 
 const ANTICIPACIONES = [
   ['TREINTA_MIN', '30 minutos antes'],
@@ -101,6 +102,14 @@ export async function vistaAjustes({ params, user, irA }) {
       <p class="chico">Recibirás avisos de todos los jóvenes del grupo como notificaciones en este dispositivo.</p>
     </form>
 
+    <div class="tarjeta">
+      <h2 style="margin-top:0">Apariencia</h2>
+      <div class="segmentado tres" role="group" aria-label="Apariencia" id="tema">
+        ${[['auto', 'Automático'], ['light', 'Claro'], ['dark', 'Oscuro']].map(([v, t]) => `<button type="button" data-tema="${v}" aria-pressed="${leerTema() === v}">${t}</button>`).join('')}
+      </div>
+      <p class="chico">Automático usa el mismo modo que tu celular. Se guarda en este dispositivo.</p>
+    </div>
+
     ${ayudaAvisos()}
 
     <form id="f-clave" class="tarjeta" novalidate style="margin-top:14px">
@@ -140,6 +149,13 @@ export async function vistaAjustes({ params, user, irA }) {
     vista.querySelector('#c-dia-anterior').hidden = !f.diaAnterior.checked;
   };
   sincronizar();
+
+  vista.querySelector('#tema').addEventListener('click', (e) => {
+    const boton = e.target.closest('button[data-tema]');
+    if (!boton) return;
+    aplicarTema(boton.dataset.tema);
+    vista.querySelectorAll('#tema button').forEach((b) => b.setAttribute('aria-pressed', String(b === boton)));
+  });
 
   const guardado = vista.querySelector('#guardado');
   let borrarEstado;

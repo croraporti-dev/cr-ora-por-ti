@@ -11,6 +11,7 @@ const ARCHIVOS = [
   '/js/fechas.js',
   '/js/textos.js',
   '/js/push.js',
+  '/js/tema.js',
   '/js/vistas/login.js',
   '/js/vistas/joven.js',
   '/js/vistas/agenda.js',

@@ -7,6 +7,16 @@
   <meta name="description" content="Agenda de oración por las pruebas y exámenes de los jóvenes de CR.">
   <meta name="theme-color" content="#2563eb" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#151e2e" media="(prefers-color-scheme: dark)">
+  <script>
+    // Tema elegido en Ajustes (Claro u Oscuro), aplicado antes de pintar para que no parpadee.
+    try {
+      var tema = localStorage.getItem('cr_tema');
+      if (tema === 'light' || tema === 'dark') {
+        document.documentElement.dataset.theme = tema;
+        document.querySelectorAll('meta[name="theme-color"]').forEach(function (m) { m.content = tema === 'dark' ? '#151e2e' : '#2563eb'; });
+      }
+    } catch (e) {}
+  </script>
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">

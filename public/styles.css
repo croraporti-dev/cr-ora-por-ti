@@ -426,3 +426,29 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .vacio-lista { padding: 12px 0; border-top: 1px solid var(--border); }
 .buscador { margin-bottom: 4px; }
 .tarjeta.solicitudes { padding: 16px 18px 8px; margin-bottom: 14px; border-color: #fde7c7; }
+
+/* Bienvenida */
+.bienvenida {
+  background: linear-gradient(160deg, var(--primary-light), var(--calido-light));
+  border-radius: 18px; padding: 26px 20px 20px; margin-bottom: 8px;
+}
+.bienvenida h1 { font-size: 1.75rem; margin-bottom: 8px; }
+.bienvenida .sub { margin-bottom: 18px; color: var(--text-main); }
+.bienvenida-sobre { font-size: 0.8rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--calido-texto); margin-bottom: 6px; }
+.btn.btn-grande { min-height: 56px; font-size: 1.05rem; }
+.bienvenida-nota { margin-top: 10px; text-align: center; }
+.pasos-bienvenida { list-style: none; display: grid; gap: 14px; margin-bottom: 20px; }
+.pasos-bienvenida li { display: flex; gap: 14px; align-items: flex-start; }
+.pasos-bienvenida li div { display: flex; flex-direction: column; }
+.paso-num {
+  flex-shrink: 0; display: inline-flex; align-items: center; justify-content: center;
+  width: 34px; height: 34px; border-radius: 999px; background: var(--primary); color: #fff; font-weight: 700;
+}
+.privacidad {
+  display: flex; gap: 12px; align-items: flex-start; padding: 14px 16px; margin-bottom: 28px;
+  background: var(--success-light); color: var(--success); border-radius: var(--radius);
+}
+.privacidad svg { flex-shrink: 0; margin-top: 2px; }
+.privacidad p { color: var(--text-main); font-size: 0.9rem; }
+.bienvenida-orar { border-top: 1px solid var(--border); padding-top: 20px; text-align: center; }
+.bienvenida-orar p { font-weight: 600; margin-bottom: 10px; }

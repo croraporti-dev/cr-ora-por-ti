@@ -5,14 +5,35 @@ import { TIPOS, ANIMOS, queTiene, nombreTipo } from '../textos.js';
 import { partesChile, cuando, hoyChile, fechaChileEn, aDMA, desdeDMA, yaPaso } from '../fechas.js';
 import { montarTarjetaAvisos } from './avisos.js';
 
+const PASOS_BIENVENIDA = [
+  ['Anota tu prueba', 'Qué tienes, el día y la hora. Toma menos de un minuto.'],
+  ['Oramos por ti', 'El grupo recibe un aviso y ora por ti antes de que empieces.'],
+  ['Te preguntamos cómo te fue', 'Después alguien te escribe para saber cómo te fue.']
+];
+
 export function vistaBienvenida() {
   pintar(`
-    <h1>Te acompañamos en oración</h1>
-    <p class="sub">Anota tus pruebas, exámenes y trabajos, y un grupo de la iglesia orará por ti ese día.</p>
-    <a class="btn bloque" href="#/mis">Anotar mi prueba</a>
-    <p class="chico" style="margin:10px 0 28px;text-align:center">No necesitas cuenta ni contraseña.</p>
-    <div class="tarjeta">
-      <p style="margin-bottom:12px"><strong>¿Quieres orar por los jóvenes?</strong></p>
+    <section class="bienvenida">
+      <p class="bienvenida-sobre">Para los jóvenes de CR</p>
+      <h1>Juntos en cada prueba</h1>
+      <p class="sub">Anota tus pruebas, exámenes y trabajos, y un grupo de la iglesia orará por ti ese día.</p>
+      <a class="btn bloque btn-grande" href="#/mis">Anotar mi prueba</a>
+      <p class="chico bienvenida-nota">Sin cuenta ni contraseña. Solo tu nombre y tu celular.</p>
+    </section>
+
+    <h2>Cómo funciona</h2>
+    <ol class="pasos-bienvenida">
+      ${PASOS_BIENVENIDA.map(([titulo, texto], i) => `
+        <li><span class="paso-num" aria-hidden="true">${i + 1}</span><div><strong>${titulo}</strong><span class="chico">${texto}</span></div></li>`).join('')}
+    </ol>
+
+    <div class="privacidad">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 3l7 3v5c0 4.5-3 8.3-7 10-4-1.7-7-5.5-7-10V6l7-3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M9 12l2 2 4-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <p><strong>Tus datos se cuidan.</strong> Tu nombre, tu celular y tus pruebas solo los ven las personas que oran, aprobadas por la líder del grupo. No se publican en ningún lado.</p>
+    </div>
+
+    <div class="bienvenida-orar">
+      <p>¿Quieres orar por los jóvenes?</p>
       <a class="btn secundario bloque" href="#/login">Entrar para orar</a>
     </div>
   `);

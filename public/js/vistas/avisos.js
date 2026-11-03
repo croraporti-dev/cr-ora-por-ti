@@ -4,8 +4,8 @@ import { esc, conCarga, avisar, confirmar } from '../ui.js';
 import * as push from '../push.js';
 
 // Ilustraciones simples para la guía de iPhone.
-const ICONO_COMPARTIR = `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="12" y="18" width="24" height="24" rx="4" fill="none" stroke="#2563eb" stroke-width="3"/><path d="M24 6v24M16 13l8-8 8 8" fill="none" stroke="#2563eb" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const ICONO_AGREGAR = `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="7" fill="none" stroke="#2563eb" stroke-width="3"/><path d="M24 16v16M16 24h16" stroke="#2563eb" stroke-width="3" stroke-linecap="round"/></svg>`;
+const ICONO_COMPARTIR = `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="12" y="18" width="24" height="24" rx="4" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 6v24M16 13l8-8 8 8" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ICONO_AGREGAR = `<svg viewBox="0 0 48 48" width="44" height="44" aria-hidden="true"><rect x="8" y="8" width="32" height="32" rx="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M24 16v16M16 24h16" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>`;
 const ICONO_APP = `<img src="/icons/apple-touch-icon.png" width="44" height="44" alt="" style="border-radius:10px">`;
 
 function guiaIphone(iosViejo) {

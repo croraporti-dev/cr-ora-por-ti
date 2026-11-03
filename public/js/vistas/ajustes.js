@@ -1,6 +1,6 @@
 // Ajustes de avisos (orantes y líder). Se guarda solo al cambiar cada opción.
 import { api } from '../api.js';
-import { pintar, esc, avisar, conCarga } from '../ui.js';
+import { pintar, esc, avisar, conCarga, confirmar } from '../ui.js';
 import { montarTarjetaAvisos } from './avisos.js';
 
 const ANTICIPACIONES = [
@@ -27,7 +27,7 @@ function prefsDesdeFormulario(f) {
   };
 }
 
-export async function vistaAjustes({ params }) {
+export async function vistaAjustes({ params, user, irA }) {
   const vista = pintar('<p class="cargando">Cargando…</p>');
   let datos;
   try {
@@ -68,7 +68,16 @@ export async function vistaAjustes({ params }) {
       <button type="submit" class="btn secundario bloque">Cambiar contraseña</button>
       <p class="chico" style="margin-top:10px">Se cerrará tu sesión en los demás dispositivos.</p>
     </form>
+
+    <div class="tarjeta cuenta">
+      <div><strong>${esc([user.nombre, user.apellido].filter(Boolean).join(' '))}</strong><span class="chico">${esc(user.email || '')}</span></div>
+      <button type="button" class="btn texto peligro-texto" id="salir">Cerrar sesión</button>
+    </div>
   `;
+
+  vista.querySelector('#salir').addEventListener('click', async () => {
+    if (await confirmar('Para volver a entrar necesitarás tu correo y contraseña.', { titulo: '¿Cerrar sesión?', aceptar: 'Cerrar sesión' })) irA('#/salir');
+  });
 
   const fClave = vista.querySelector('#f-clave');
   fClave.addEventListener('submit', (e) => {

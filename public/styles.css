@@ -57,32 +57,32 @@ a { color: var(--primary); }
   color: var(--text-muted); font-size: 0.85rem; font-weight: 600; white-space: nowrap;
 }
 .nav a.activo { background: var(--primary-light); color: var(--primary); }
-.btn-menu {
-  display: none; align-items: center; justify-content: center;
-  width: 44px; height: 44px; border: none; border-radius: 10px;
-  background: none; color: var(--text-main); cursor: pointer;
+/* Barra inferior (solo celular) */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  display: none; justify-content: space-around;
+  padding: 4px 8px calc(4px + env(safe-area-inset-bottom));
+  background: var(--surface); border-top: 1px solid var(--border);
 }
-.btn-menu:hover, .btn-menu[aria-expanded=true] { background: var(--primary-light); color: var(--primary); }
+.tabs a {
+  flex: 1; max-width: 140px; min-height: 56px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+  border-radius: 12px; text-decoration: none; color: var(--text-muted); font-size: 0.75rem; font-weight: 600;
+}
+.tabs a.activo { color: var(--primary); }
+.tabs a.activo svg { background: var(--primary-light); border-radius: 999px; padding: 2px 14px; box-sizing: content-box; }
+.tabs a:focus-visible { outline: 3px solid var(--primary-light); outline-offset: -3px; }
 
-/* En celular: logo centrado, botón de menú a la derecha y menú desplegable. */
+/* En celular: logo centrado arriba y las secciones abajo. */
 @media (max-width: 560px) {
-  .barra { display: grid; grid-template-columns: 44px 1fr 44px; gap: 8px; }
-  .btn-menu { display: inline-flex; grid-column: 3; grid-row: 1; }
-  .marca { grid-column: 2; grid-row: 1; justify-self: center; }
+  .barra { justify-content: center; }
   /* El nombre es largo: en celular se achica un poco para que quepa en una línea junto al logo. */
   .marca { gap: 8px; }
   .marca-icono { width: 28px; height: auto; }
   .marca-texto { font-size: 0.8rem; letter-spacing: 0.06em; }
-  .nav {
-    position: absolute; top: 100%; left: 0; right: 0;
-    flex-direction: column; gap: 2px; padding: 8px 12px 12px;
-    background: var(--surface); border-bottom: 1px solid var(--border);
-    box-shadow: 0 12px 24px -12px rgb(15 23 42 / 0.25);
-    display: none;
-  }
-  .nav.abierto { display: flex; }
-  .nav a { padding: 14px 12px; border-radius: 10px; font-size: 1rem; color: var(--text-main); }
-  .nav a.cerrar { color: var(--danger); }
+  .nav { display: none; }
+  .tabs:not([hidden]) { display: flex; }
+  body.con-tabs .contenedor { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  body.con-tabs .toast { bottom: calc(80px + env(safe-area-inset-bottom)); }
 }
 
 .contenedor { max-width: 560px; margin: 0 auto; padding: 20px 16px 48px; outline: none; }
@@ -452,3 +452,5 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .privacidad p { color: var(--text-main); font-size: 0.9rem; }
 .bienvenida-orar { border-top: 1px solid var(--border); padding-top: 20px; text-align: center; }
 .bienvenida-orar p { font-weight: 600; margin-bottom: 10px; }
+.cuenta { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.cuenta > div { display: flex; flex-direction: column; min-width: 0; overflow-wrap: anywhere; }

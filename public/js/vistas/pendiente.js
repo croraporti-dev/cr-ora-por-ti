@@ -10,6 +10,7 @@ export function vistaPendiente({ alRevisar }) {
       <button class="btn secundario bloque" id="revisar">Revisar de nuevo</button>
     </div>
     <p class="chico">¿Tienes una prueba o examen? <a href="#/mis">Anótalo aquí</a>.</p>
+    <p class="chico" style="margin-top:24px"><a href="#/salir" class="peligro-texto">Cerrar sesión</a></p>
   `);
   vista.querySelector('#revisar').addEventListener('click', (e) =>
     conCarga(e.currentTarget, null, async () => {

@@ -18,6 +18,32 @@ export function avisar(mensaje) {
   temporizador = setTimeout(() => { el.hidden = true; }, 3500);
 }
 
+// Aviso con un botón (por ejemplo "Deshacer"). Devuelve una promesa: true si lo tocan antes de `ms`.
+export function avisarConAccion(mensaje, textoBoton, ms = 6000) {
+  const el = document.getElementById('aviso');
+  clearTimeout(temporizador);
+  el.innerHTML = '';
+  const texto = document.createElement('span');
+  texto.textContent = mensaje;
+  const boton = document.createElement('button');
+  boton.type = 'button';
+  boton.className = 'toast-accion';
+  boton.textContent = textoBoton;
+  el.append(texto, boton);
+  el.classList.add('con-accion');
+  el.hidden = false;
+  return new Promise((resolve) => {
+    const terminar = (valor) => {
+      clearTimeout(temporizador);
+      el.hidden = true;
+      el.classList.remove('con-accion');
+      resolve(valor);
+    };
+    boton.addEventListener('click', () => terminar(true), { once: true });
+    temporizador = setTimeout(() => terminar(false), ms);
+  });
+}
+
 // Ejecuta una acción async desactivando el botón y mostrando el error en `cajaError`.
 export async function conCarga(boton, cajaError, accion) {
   const textoOriginal = boton.textContent;

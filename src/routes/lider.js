@@ -8,6 +8,7 @@ const { crearEnlaceAcceso } = require('../services/claves');
 const { nombreVisible } = require('../services/evaluaciones');
 const { ahoraLocal } = require('../services/tiempo');
 const v = require('../validar');
+const { DateTime } = require('luxon');
 
 const router = express.Router();
 router.use(requiereRol('LIDER'));
@@ -38,6 +39,14 @@ router.get('/resumen', async (req, res, next) => {
     const porCanal = Object.fromEntries(avisos.map((a) => [a.canal, a._count]));
     res.json({
       semana: { desde: inicio.toFormat('dd/MM/yyyy'), hasta: fin.minus({ days: 1 }).toFormat('dd/MM/yyyy') },
+      // Carga por día (lunes a domingo) para el gráfico del resumen.
+      porDia: Array.from({ length: 7 }, (_, i) => {
+        const dia = inicio.plus({ days: i });
+        return {
+          fecha: dia.toISODate(),
+          cantidad: evaluaciones.filter((e) => DateTime.fromJSDate(e.fechaHora, { zone: ahora.zone }).hasSame(dia, 'day')).length
+        };
+      }),
       evaluaciones: evaluaciones.length,
       evaluacionesPendientes: evaluaciones.filter((e) => e.fechaHora > new Date()).length,
       jovenes: new Set(evaluaciones.map((e) => e.userId)).size,

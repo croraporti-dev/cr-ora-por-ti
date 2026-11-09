@@ -14,7 +14,6 @@ const PASOS_BIENVENIDA = [
 export function vistaBienvenida() {
   pintar(`
     <section class="bienvenida">
-      <p class="bienvenida-sobre">Para los jóvenes de CR</p>
       <h1>Juntos en cada prueba</h1>
       <p class="sub">Anota tus pruebas, exámenes y trabajos, y oraremos por ti.</p>
       <a class="btn bloque btn-grande" href="#/mis">Anotar mi prueba</a>

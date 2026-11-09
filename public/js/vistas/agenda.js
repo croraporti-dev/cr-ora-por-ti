@@ -123,7 +123,10 @@ export async function vistaAgenda({ user, params, avisos }) {
   const vista = pintar(`
     ${bannerAvisos(avisos)}
     <div class="agenda-cabecera">
-      <h1>Agenda de oración</h1>
+      <div class="agenda-titulo">
+        <h1>Agenda de oración</h1>
+        <a class="btn secundario chico-btn" href="#/mis">+ Anotar mi prueba</a>
+      </div>
       <p class="contador" id="contador" hidden></p>
     </div>
     <div id="lista"><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div></div>
@@ -247,7 +250,7 @@ export async function vistaAgenda({ user, params, avisos }) {
     }
 
     lista.innerHTML = `${evaluaciones.length ? tira : ''}${cuerpo}
-      ${evaluaciones.length ? '<p class="chico pie-agenda">¿Tú también tienes una prueba o examen? <a href="#/mis">Anótalo aquí</a> y el grupo orará por ti.</p>' : ''}`;
+`;
   }
 
   pintarLista();

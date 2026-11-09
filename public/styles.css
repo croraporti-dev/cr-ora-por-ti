@@ -399,6 +399,9 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 /* ---------- Agenda (muchas pruebas a la vez) ---------- */
 .agenda-cabecera { margin-bottom: 12px; }
 .agenda-cabecera h1 { margin-bottom: 4px; }
+.agenda-titulo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.btn.chico-btn { padding: 8px 14px; font-size: 0.9rem; white-space: nowrap; }
+.volver { display: inline-flex; align-items: center; min-height: 44px; margin-bottom: 4px; font-weight: 600; text-decoration: none; }
 .contador {
   display: inline-flex; align-items: center; gap: 6px;
   font-size: 0.9rem; color: var(--calido-texto);

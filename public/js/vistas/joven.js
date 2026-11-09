@@ -131,7 +131,14 @@ function tarjetaMia(e) {
     </div>`;
 }
 
-export async function vistaMis() {
+// Quien entra con sesión (orante o líder) ve un enlace para volver a la agenda.
+let conSesion = false;
+const VOLVER = '<a class="volver" href="#/agenda">‹ Volver a la agenda</a>';
+const cabeceraVolver = () => (conSesion ? VOLVER : '');
+
+export async function vistaMis(ctx) {
+  // Las recargas internas llaman sin argumentos y conservan el valor.
+  if (ctx) conSesion = !!ctx.user && !ctx.user.pendiente;
   const vista = pintar('<p class="cargando">Cargando…</p>');
   let datos;
   try {
@@ -145,7 +152,7 @@ export async function vistaMis() {
 }
 
 function mostrarPerfil(vista) {
-  vista.innerHTML = formularioPerfil();
+  vista.innerHTML = cabeceraVolver() + formularioPerfil();
   const f = vista.querySelector('#f-perfil');
   f.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -170,6 +177,7 @@ function mostrarEvaluaciones(contenedor, { joven, evaluaciones }) {
   contenedor.innerHTML = '<div></div>';
   const vista = contenedor.firstElementChild;
   vista.innerHTML = `
+    ${cabeceraVolver()}
     <h1>Hola, ${esc(joven.nombre)}</h1>
     <p class="sub">Anota tus pruebas y oraremos por ti ese día.</p>
     ${pendientesAnimo.map(tarjetaAnimo).join('')}

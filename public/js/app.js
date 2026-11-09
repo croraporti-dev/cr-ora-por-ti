@@ -131,11 +131,13 @@ async function render() {
 // y la persona no pidió menos movimiento). La transición espera solo el primer pintado, no la carga de datos.
 function conTransicion() {
   if (!document.startViewTransition || matchMedia('(prefers-reduced-motion: reduce)').matches) return render();
-  document.startViewTransition(() => {
+  const transicion = document.startViewTransition(() => {
     const pintado = esperarPintado();
     const listo = render().catch(() => {});
     return Promise.race([pintado, listo, new Promise((r) => setTimeout(r, 300))]);
   });
+  // Si se cambia de pantalla muy rápido, el navegador salta la animación: no es un error.
+  transicion.ready.catch(() => {});
 }
 
 async function iniciar() {

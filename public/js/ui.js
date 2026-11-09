@@ -9,12 +9,16 @@ export function esperarPintado() {
   return new Promise((resolve) => { alPintar = resolve; });
 }
 
+// Cada pantalla vive en un contenedor propio que se descarta al cambiar de pantalla: así sus listeners
+// no se acumulan en #vista y las respuestas que llegan tarde escriben en la pantalla vieja, sin errores.
 export function pintar(html) {
-  const vista = document.getElementById('vista');
-  vista.innerHTML = html;
+  const pantalla = document.createElement('div');
+  pantalla.className = 'pantalla';
+  pantalla.innerHTML = html;
+  document.getElementById('vista').replaceChildren(pantalla);
   alPintar?.();
   alPintar = null;
-  return vista;
+  return pantalla;
 }
 
 let temporizador;

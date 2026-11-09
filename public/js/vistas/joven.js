@@ -96,7 +96,7 @@ function formularioEvaluacion(e) {
         <button type="button" class="btn texto" data-fecha="${aDMA(hoyChile())}">Hoy</button>
         <button type="button" class="btn texto" data-fecha="${aDMA(fechaChileEn(1))}">Mañana</button>
       </div>
-      <div class="campo"><span>Hora (24 h)</span>${camposHora(p.hora)}</div>
+      <div class="campo"><span>Hora</span>${camposHora(p.hora)}</div>
       <p class="error" hidden></p>
       <button type="submit" class="btn bloque">${e ? 'Guardar cambios' : 'Anotar'}</button>
       ${e ? '<button type="button" class="btn texto bloque" data-accion="cancelar">Cancelar</button>' : ''}

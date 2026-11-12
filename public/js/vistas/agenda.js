@@ -22,26 +22,21 @@ function formatoCelular(t) {
 }
 
 // Mensaje que se abre en WhatsApp ya escrito (quien escribe puede cambiarlo antes de enviarlo).
-// Antes de la prueba: "estuve orando por tu prueba de X"; después: además pregunta cómo le fue.
-function mensajeWhatsApp(g, user) {
-  const primero = (t) => (t || '').trim().split(/\s+/)[0];
-  const ahora = new Date();
+function mensajeWhatsApp(g) {
+  const nombre = (g.joven.nombre || '').trim().split(/\s+/)[0];
   const queEs = g.evs.length === 1 ? `tu ${queTiene(g.evs[0])}` : 'tus evaluaciones';
-  const yo = primero(user.nombre);
-  const saludo = `Hola ${primero(g.joven.nombre)}${yo ? `, soy ${yo}` : ''}.`;
-  const faltaAlguna = g.evs.some((e) => new Date(e.fechaHora) > ahora);
-  return `${saludo} Estuve orando por ${queEs}. ${faltaAlguna ? '¡Mucho ánimo!' : '¿Cómo te fue?'}`;
+  return `Hola ${nombre}. Estuve orando por ${queEs}.`;
 }
 
 // Celular (toca para llamar) y botón para escribirle por WhatsApp, con un mensaje de ejemplo ya escrito.
-function contacto(g, user) {
+function contacto(g) {
   const joven = g.joven;
   if (!joven.telefono) return '';
   const numero = joven.telefono.replace('+', '');
   return `
     <div class="ev-contacto">
       <a href="tel:${esc(joven.telefono)}">${esc(formatoCelular(joven.telefono))}</a>
-      <a class="btn-whatsapp" href="https://wa.me/${esc(numero)}?text=${encodeURIComponent(mensajeWhatsApp(g, user))}" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn-whatsapp" href="https://wa.me/${esc(numero)}?text=${encodeURIComponent(mensajeWhatsApp(g))}" target="_blank" rel="noopener">WhatsApp</a>
     </div>`;
 }
 
@@ -129,7 +124,7 @@ function fila(g, user, abierta, resaltar) {
       </button>
       ${abierta ? `
         <div class="fila-detalle">
-          ${contacto(g, user)}
+          ${contacto(g)}
           <ul class="ev-items">${g.evs.map((e) => detalleEvaluacion(e, user)).join('')}</ul>
         </div>` : ''}
     </li>`;

@@ -2,7 +2,7 @@
 // Tira con los próximos 7 días, filas compactas que se expanden, "Ya oré" como estado y filtro.
 import { api, memoria } from '../api.js';
 import { pintar, esc, avisar, confirmar, ubicarMenu } from '../ui.js';
-import { ANIMOS, nombreTipo } from '../textos.js';
+import { ANIMOS, nombreTipo, queTiene } from '../textos.js';
 import { partesChile, fechaChileEn, hoyChile, aDMA } from '../fechas.js';
 
 const DIAS_CORTOS = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
@@ -21,14 +21,27 @@ function formatoCelular(t) {
   return m ? `+56 ${m[1]} ${m[2]} ${m[3]}` : t || '';
 }
 
-// Celular (toca para llamar) y botón para escribirle por WhatsApp.
-function contacto(joven) {
+// Mensaje que se abre en WhatsApp ya escrito (quien escribe puede cambiarlo antes de enviarlo).
+// Antes de la prueba: "estuve orando por tu prueba de X"; después: además pregunta cómo le fue.
+function mensajeWhatsApp(g, user) {
+  const primero = (t) => (t || '').trim().split(/\s+/)[0];
+  const ahora = new Date();
+  const queEs = g.evs.length === 1 ? `tu ${queTiene(g.evs[0])}` : 'tus evaluaciones';
+  const yo = primero(user.nombre);
+  const saludo = `Hola ${primero(g.joven.nombre)}${yo ? `, soy ${yo}` : ''}.`;
+  const faltaAlguna = g.evs.some((e) => new Date(e.fechaHora) > ahora);
+  return `${saludo} Estuve orando por ${queEs}. ${faltaAlguna ? '¡Mucho ánimo!' : '¿Cómo te fue?'}`;
+}
+
+// Celular (toca para llamar) y botón para escribirle por WhatsApp, con un mensaje de ejemplo ya escrito.
+function contacto(g, user) {
+  const joven = g.joven;
   if (!joven.telefono) return '';
   const numero = joven.telefono.replace('+', '');
   return `
     <div class="ev-contacto">
       <a href="tel:${esc(joven.telefono)}">${esc(formatoCelular(joven.telefono))}</a>
-      <a class="btn-whatsapp" href="https://wa.me/${esc(numero)}" target="_blank" rel="noopener">WhatsApp</a>
+      <a class="btn-whatsapp" href="https://wa.me/${esc(numero)}?text=${encodeURIComponent(mensajeWhatsApp(g, user))}" target="_blank" rel="noopener">WhatsApp</a>
     </div>`;
 }
 
@@ -116,7 +129,7 @@ function fila(g, user, abierta, resaltar) {
       </button>
       ${abierta ? `
         <div class="fila-detalle">
-          ${contacto(g.joven)}
+          ${contacto(g, user)}
           <ul class="ev-items">${g.evs.map((e) => detalleEvaluacion(e, user)).join('')}</ul>
         </div>` : ''}
     </li>`;

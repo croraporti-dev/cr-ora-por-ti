@@ -51,6 +51,18 @@ const MENU = [
   { ruta: '#/ajustes', texto: 'Ajustes', icono: 'ajustes' }
 ];
 
+// iPhone y iPad con la app instalada no tienen botón de volver del navegador: se muestra una flecha arriba
+// a la izquierda en las pantallas que no son de la barra de secciones.
+const PANTALLAS_RAIZ = ['/', '/bienvenida', '/agenda', '/lider', '/ajustes'];
+function pintarAtras(ruta) {
+  const boton = document.getElementById('atras');
+  boton.hidden = !(navigator.standalone === true && !PANTALLAS_RAIZ.includes(ruta));
+}
+document.getElementById('atras').addEventListener('click', () => {
+  if (history.length > 1) history.back();
+  else irA(estado.user ? '#/agenda' : '#/bienvenida');
+});
+
 function irA(hash) {
   if (location.hash === hash) render();
   else location.hash = hash;
@@ -79,6 +91,7 @@ function pintarMenu(ruta) {
 async function render() {
   const [ruta, query = ''] = (location.hash.slice(1) || '/').split('?');
   const params = new URLSearchParams(query);
+  pintarAtras(ruta);
   const ctx = {
     irA,
     params,

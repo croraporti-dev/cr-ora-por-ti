@@ -150,6 +150,14 @@ a { color: var(--primary); }
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
+.atras {
+  position: absolute; left: calc(4px + env(safe-area-inset-left)); bottom: 3px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; padding: 0; border: none; border-radius: 50%;
+  background: none; color: var(--primary); cursor: pointer;
+}
+.atras[hidden] { display: none; }
+.atras:active { background: var(--primary-light); }
 .marca { display: inline-flex; align-items: center; gap: 10px; color: var(--primary); text-decoration: none; white-space: nowrap; }
 .marca-icono { display: block; flex-shrink: 0; }
 /* Tipografía de logo: geométrica, gruesa y espaciada, como la marca CR */

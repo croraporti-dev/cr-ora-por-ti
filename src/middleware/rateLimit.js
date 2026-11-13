@@ -13,10 +13,10 @@ async function consumir(clave, maximo, ventanaSegundos) {
   return filas[0].count <= maximo;
 }
 
-// Lanzamiento: hasta esta fecha los límites por red se multiplican por 10 (mucha gente en el mismo
+// Anuncio por redes (13/11/2026): hasta esta fecha los límites por red se multiplican por 10 (mucha gente en el mismo
 // Wi-Fi o datos móviles a la vez). Después vuelven solos a lo normal; no hay que acordarse de cambiarlo.
 // Los límites por correo (intentos de contraseña) no cambian.
-const HOLGURA_HASTA = new Date(process.env.LIMITES_RELAJADOS_HASTA || '2026-11-02T03:00:00Z'); // lun 02/11 00:00 en Chile
+const HOLGURA_HASTA = new Date(process.env.LIMITES_RELAJADOS_HASTA || '2026-11-18T03:00:00Z'); // mié 18/11 00:00 en Chile (vale todo el martes 17/11)
 const FACTOR_HOLGURA = 10;
 
 function maximoVigente(maximo) {

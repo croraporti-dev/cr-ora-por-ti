@@ -261,11 +261,13 @@ export async function vistaAgenda({ user, params, avisos }) {
       if (despues.length) {
         cuerpo += estado.verMas
           ? [...new Set(despues.map((g) => g.fecha))].map((f) => seccion(tituloDia(f, hoy, manana), despues.filter((g) => g.fecha === f), 'mas-adelante')).join('')
+            + '<button class="btn texto bloque" data-accion="ocultar-mas">Ocultar las próximas</button>'
           : `<button class="btn secundario bloque ver-mas" data-accion="ver-mas">Ver más adelante (${despues.reduce((n, g) => n + g.evs.length, 0)})</button>`;
       }
       if (pasadas.length) {
         cuerpo += estado.verPasadas
           ? seccion('Hace poco', pasadas, 'pasadas')
+            + '<button class="btn texto bloque" data-accion="ocultar-pasadas">Ocultar las de hace poco</button>'
           : `<button class="btn texto bloque" data-accion="ver-pasadas">Ver las de hace poco (${pasadas.reduce((n, g) => n + g.evs.length, 0)})</button>`;
       }
     }
@@ -320,6 +322,11 @@ export async function vistaAgenda({ user, params, avisos }) {
     }
     if (accion === 'ver-mas') {
       estado.verMas = true;
+      pintarLista();
+      return;
+    }
+    if (accion === 'ocultar-mas' || accion === 'ocultar-pasadas') {
+      estado[accion === 'ocultar-mas' ? 'verMas' : 'verPasadas'] = false;
       pintarLista();
       return;
     }

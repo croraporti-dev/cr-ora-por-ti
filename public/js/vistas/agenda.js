@@ -148,7 +148,9 @@ export async function vistaAgenda({ user, params, avisos }) {
 
   const hoy = hoyChile();
   const manana = fechaChileEn(1);
-  const finSemana = fechaChileEn(6); // fin de "esta semana" (hoy y los 6 días siguientes)
+  // Las semanas van de lunes a domingo. desdeLunes = días que han pasado desde el lunes (0 si hoy es lunes).
+  const desdeLunes = (diaSemana(hoy) + 6) % 7;
+  const finSemana = fechaChileEn(6 - desdeLunes); // domingo de esta semana
   const MS_DIA = 24 * 60 * 60 * 1000;
   const diasDesdeHoy = (fecha) => Math.round((Date.parse(`${fecha}T12:00:00Z`) - Date.parse(`${hoy}T12:00:00Z`)) / MS_DIA);
   const estado = {
@@ -167,7 +169,7 @@ export async function vistaAgenda({ user, params, avisos }) {
     const { fecha } = partesChile(destino.fechaHora);
     estado.abiertas.add(`${fecha}|${destino.joven.id}`);
     estado.resaltar = `${fecha}|${destino.joven.id}`;
-    if (fecha > finSemana) estado.semanaN = Math.floor(diasDesdeHoy(fecha) / 7);
+    if (fecha > finSemana) estado.semanaN = Math.floor((diasDesdeHoy(fecha) + desdeLunes) / 7);
     if (fecha < hoy) estado.verPasadas = true;
   }
 
@@ -197,19 +199,31 @@ export async function vistaAgenda({ user, params, avisos }) {
     const grupos = agrupar(visibles);
     // Última semana que tiene pruebas: hasta ahí se puede avanzar con las flechas.
     const ultima = evaluaciones.reduce((m, e) => { const f = partesChile(e.fechaHora).fecha; return f > m ? f : m; }, hoy);
-    const maxSemana = Math.floor(diasDesdeHoy(ultima) / 7);
+    const maxSemana = Math.floor((diasDesdeHoy(ultima) + desdeLunes) / 7);
     estado.semanaN = Math.min(Math.max(estado.semanaN, 0), maxSemana);
     const n0 = estado.semanaN === 0;
-    const semana = Array.from({ length: 7 }, (_, i) => fechaChileEn(7 * estado.semanaN + i));
+    const semana = Array.from({ length: 7 }, (_, i) => fechaChileEn(7 * estado.semanaN - desdeLunes + i));
     const inicio = semana[0];
     const fin = semana[6];
-    const enSemana = grupos.filter((g) => g.fecha >= inicio && g.fecha <= fin);
+    // De la semana actual solo se listan los días desde hoy; los anteriores quedan atenuados en la franja.
+    const desde = inicio > hoy ? inicio : hoy;
+    const enSemana = grupos.filter((g) => g.fecha >= desde && g.fecha <= fin);
     const despues = n0 ? grupos.filter((g) => g.fecha > finSemana) : [];
     const pasadas = n0 ? grupos.filter((g) => g.fecha < hoy).reverse() : [];
     const fmtDia = (f) => `${Number(f.slice(8))} ${MESES_CORTOS[Number(f.slice(5, 7)) - 1]}`;
     const rango = inicio.slice(5, 7) === fin.slice(5, 7) ? `${Number(inicio.slice(8))} – ${fmtDia(fin)}` : `${fmtDia(inicio)} – ${fmtDia(fin)}`;
-    const nSemana = evaluaciones.filter((e) => { const f = partesChile(e.fechaHora).fecha; return f >= inicio && f <= fin; }).length;
+    const nSemana = evaluaciones.filter((e) => { const f = partesChile(e.fechaHora).fecha; return f >= desde && f <= fin; }).length;
     const tituloSemana = n0 ? 'Esta semana' : estado.semanaN === 1 ? 'Próxima semana' : `En ${estado.semanaN} semanas`;
+    // Aviso de que la semana siguiente tiene pruebas (para no enterarse encima, un domingo).
+    const sigInicio = fechaChileEn(7 * (estado.semanaN + 1) - desdeLunes);
+    const sigFin = fechaChileEn(7 * (estado.semanaN + 1) - desdeLunes + 6);
+    const sigFechas = evaluaciones.map((e) => partesChile(e.fechaHora).fecha).filter((f) => f >= sigInicio && f <= sigFin).sort();
+    const avisoSig = sigFechas.length
+      ? `<button class="semana-aviso" data-accion="semana" data-delta="1">
+          <span>${n0 ? 'Próxima semana' : 'Semana siguiente'}: <strong>${sigFechas.length} ${sigFechas.length === 1 ? 'prueba' : 'pruebas'}</strong>, la primera el ${DIAS_LARGOS[diaSemana(sigFechas[0])]} ${aDMA(sigFechas[0]).slice(0, 5)}</span>
+          ${ICONO_ADELANTE}
+        </button>`
+      : '';
     const cuenta = (fecha) => evaluaciones.filter((e) => partesChile(e.fechaHora).fecha === fecha).length;
 
     const tira = `
@@ -225,7 +239,7 @@ export async function vistaAgenda({ user, params, avisos }) {
         ${semana.map((f) => {
           const n = cuenta(f);
           const elegido = estado.dia === f;
-          return `<button class="semana-dia ${elegido ? 'elegido' : ''} ${n ? '' : 'vacio-dia'}" data-accion="dia" data-fecha="${f}" aria-pressed="${elegido}"
+          return `<button class="semana-dia ${elegido ? 'elegido' : ''} ${n ? '' : 'vacio-dia'} ${f < hoy ? 'pasado' : ''}" data-accion="dia" data-fecha="${f}" aria-pressed="${elegido}"
             aria-label="${esc(tituloDia(f, hoy, manana))}: ${n} ${n === 1 ? 'evaluación' : 'evaluaciones'}">
             <span class="semana-nombre">${f === hoy ? 'Hoy' : DIAS_CORTOS[diaSemana(f)]}</span>
             <span class="semana-num">${Number(f.slice(8))}</span>
@@ -233,6 +247,7 @@ export async function vistaAgenda({ user, params, avisos }) {
           </button>`;
         }).join('')}
       </div>
+      ${avisoSig}
       <div class="segmentado" role="group" aria-label="Mostrar">
         <button data-accion="filtro" data-filtro="todas" aria-pressed="${estado.filtro === 'todas'}">Todas</button>
         <button data-accion="filtro" data-filtro="por-orar" aria-pressed="${estado.filtro === 'por-orar'}">Por orar</button>
@@ -247,16 +262,16 @@ export async function vistaAgenda({ user, params, avisos }) {
           <a class="btn bloque" href="#/mis">Anotar mi prueba</a>
         </div>`;
     } else if (estado.dia) {
-      const delDia = enSemana.filter((g) => g.fecha === estado.dia);
+      const delDia = grupos.filter((g) => g.fecha === estado.dia);
       cuerpo = seccion(tituloDia(estado.dia, hoy, manana), delDia, '', estado.dia === hoy ? contadorHtml() : '')
         || `<p class="vacio">${estado.filtro === 'por-orar' && cuenta(estado.dia) ? 'Ya oraste por todas las pruebas de este día.' : 'No hay pruebas este día.'}</p>`;
       cuerpo += '<button class="btn texto bloque" data-accion="dia" data-fecha="">Ver toda la semana</button>';
     } else {
       cuerpo = semana.map((f) => seccion(tituloDia(f, hoy, manana), enSemana.filter((g) => g.fecha === f), '', f === hoy ? contadorHtml() : '')).join('');
       if (!cuerpo) {
-        cuerpo = estado.filtro === 'por-orar' && enSemana.length === 0 && evaluaciones.some((e) => partesChile(e.fechaHora).fecha >= inicio && partesChile(e.fechaHora).fecha <= fin)
+        cuerpo = estado.filtro === 'por-orar' && enSemana.length === 0 && evaluaciones.some((e) => partesChile(e.fechaHora).fecha >= desde && partesChile(e.fechaHora).fecha <= fin)
           ? '<div class="vacio-calido"><p class="vacio-titulo">Ya oraste por todas las pruebas de la semana</p><p>Gracias por acompañar a los jóvenes.</p></div>'
-          : `<p class="vacio">${n0 ? 'No hay pruebas en los próximos 7 días.' : 'No hay pruebas anotadas esta semana.'}</p>`;
+          : `<p class="vacio">${n0 ? 'No hay más pruebas esta semana.' : 'No hay pruebas anotadas esta semana.'}</p>`;
       }
       if (despues.length) {
         cuerpo += estado.verMas

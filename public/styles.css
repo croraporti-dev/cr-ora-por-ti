@@ -463,6 +463,15 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
   font-size: 0.72rem; font-weight: 700; line-height: 20px; text-align: center;
   background: var(--calido-solido); color: var(--on-calido);
 }
+.semana-dia.pasado { background: transparent; }
+.semana-dia.pasado .semana-nombre, .semana-dia.pasado .semana-num { color: var(--text-muted); }
+.semana-dia.pasado .semana-cuenta { background: var(--border); color: var(--text-muted); }
+.semana-aviso {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 44px;
+  margin-bottom: 8px; padding: 8px 12px; border: none; border-radius: 12px; cursor: pointer;
+  background: var(--primary-light); color: var(--primary); font: inherit; font-size: 0.9rem; text-align: left;
+}
+.semana-aviso svg { flex-shrink: 0; }
 .semana-dia.vacio-dia .semana-cuenta { background: transparent; }
 .semana-dia.vacio-dia .semana-num { color: var(--text-muted); }
 .semana-dia.elegido { border-color: var(--primary); background: var(--primary-light); }

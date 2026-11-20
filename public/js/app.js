@@ -77,6 +77,8 @@ function pintarMenu(ruta) {
   nav.hidden = !visible;
   tabs.hidden = !visible;
   document.body.classList.toggle('con-tabs', visible);
+  // El botón "+" para anotar la propia prueba vive en la barra de arriba, solo en la Agenda.
+  document.getElementById('anotar').hidden = !(visible && ruta === '/agenda');
   if (!visible) return;
   const menu = MENU.filter((m) => !m.roles || m.roles.includes(estado.user.rol));
   const actual = (m) => (m.ruta === '#' + ruta ? 'class="activo" aria-current="page"' : '');

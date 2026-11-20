@@ -133,13 +133,7 @@ function fila(g, user, abierta, resaltar) {
 export async function vistaAgenda({ user, params, avisos }) {
   const vista = pintar(`
     ${bannerAvisos(avisos)}
-    <div class="agenda-cabecera">
-      <div class="agenda-titulo">
-        <h1>Agenda de oración</h1>
-        <a class="btn secundario chico-btn" href="#/mis">+ Anotar mi prueba</a>
-      </div>
-      <p class="contador" id="contador" hidden></p>
-    </div>
+    <h1 class="sr-only">Agenda de oración</h1>
     <div id="lista"><div class="esqueleto"></div><div class="esqueleto"></div><div class="esqueleto"></div></div>
   `);
   const lista = vista.querySelector('#lista');
@@ -179,32 +173,26 @@ export async function vistaAgenda({ user, params, avisos }) {
 
   const porId = new Map(evaluaciones.map((e) => [e.id, e]));
 
-  function pintarContador() {
+  // "Has orado por 1 de 3": va junto al título "Hoy", porque habla de las pruebas de hoy.
+  function contadorHtml() {
     const deHoy = evaluaciones.filter((e) => partesChile(e.fechaHora).fecha === hoy);
-    const caja = vista.querySelector('#contador');
-    if (!deHoy.length) {
-      caja.hidden = true;
-      return;
-    }
+    if (!deHoy.length) return '';
     const oradas = deHoy.filter((e) => e.yoOre).length;
-    caja.hidden = false;
-    caja.innerHTML = oradas === deHoy.length
-      ? `${ICONO_CHECK} Oraste por todas las pruebas de hoy`
-      : `Has orado por <strong>${oradas} de ${deHoy.length}</strong> hoy`;
-    caja.classList.toggle('completo', oradas === deHoy.length);
+    return oradas === deHoy.length
+      ? `<p class="contador completo">${ICONO_CHECK} Oraste por todas</p>`
+      : `<p class="contador">Has orado por <strong>${oradas} de ${deHoy.length}</strong></p>`;
   }
 
-  function seccion(titulo, grupos, extraClase = '') {
+  function seccion(titulo, grupos, extraClase = '', lado = '') {
     if (!grupos.length) return '';
     return `
       <section class="dia ${extraClase}">
-        <h2>${esc(titulo)}</h2>
+        <div class="dia-cabecera"><h2>${esc(titulo)}</h2>${lado}</div>
         <ul class="filas">${grupos.map((g) => fila(g, user, estado.abiertas.has(g.clave), estado.resaltar === g.clave)).join('')}</ul>
       </section>`;
   }
 
   function pintarLista() {
-    pintarContador();
     const visibles = estado.filtro === 'por-orar' ? evaluaciones.filter((e) => !e.yoOre) : evaluaciones;
     const grupos = agrupar(visibles);
     // Última semana que tiene pruebas: hasta ahí se puede avanzar con las flechas.
@@ -260,11 +248,11 @@ export async function vistaAgenda({ user, params, avisos }) {
         </div>`;
     } else if (estado.dia) {
       const delDia = enSemana.filter((g) => g.fecha === estado.dia);
-      cuerpo = seccion(tituloDia(estado.dia, hoy, manana), delDia)
+      cuerpo = seccion(tituloDia(estado.dia, hoy, manana), delDia, '', estado.dia === hoy ? contadorHtml() : '')
         || `<p class="vacio">${estado.filtro === 'por-orar' && cuenta(estado.dia) ? 'Ya oraste por todas las pruebas de este día.' : 'No hay pruebas este día.'}</p>`;
       cuerpo += '<button class="btn texto bloque" data-accion="dia" data-fecha="">Ver toda la semana</button>';
     } else {
-      cuerpo = semana.map((f) => seccion(tituloDia(f, hoy, manana), enSemana.filter((g) => g.fecha === f))).join('');
+      cuerpo = semana.map((f) => seccion(tituloDia(f, hoy, manana), enSemana.filter((g) => g.fecha === f), '', f === hoy ? contadorHtml() : '')).join('');
       if (!cuerpo) {
         cuerpo = estado.filtro === 'por-orar' && enSemana.length === 0 && evaluaciones.some((e) => partesChile(e.fechaHora).fecha >= inicio && partesChile(e.fechaHora).fecha <= fin)
           ? '<div class="vacio-calido"><p class="vacio-titulo">Ya oraste por todas las pruebas de la semana</p><p>Gracias por acompañar a los jóvenes.</p></div>'
@@ -362,9 +350,9 @@ export async function vistaAgenda({ user, params, avisos }) {
         pintarLista();
         if (r.yoOre) {
           vista.querySelector(`button[data-accion="orar"][data-id="${CSS.escape(e.id)}"]`)?.classList.add('recien');
-          const contador = vista.querySelector('#contador');
-          contador.classList.add('latido');
-          setTimeout(() => contador.classList.remove('latido'), 700);
+          const contador = vista.querySelector('.contador');
+          contador?.classList.add('latido');
+          setTimeout(() => contador?.classList.remove('latido'), 700);
           avisar('Gracias por orar');
         }
       } else if (accion === 'quitar') {

@@ -353,11 +353,15 @@ select {
 .check input[type=radio] { accent-color: var(--primary); }
 
 /* Panel del grupo (rol líder) */
-.cifras { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-.cifra { background: var(--background); border-radius: 10px; padding: 12px; display: flex; flex-direction: column; }
-.cifra strong { font-size: 1.6rem; line-height: 1.1; color: var(--primary); }
-.cifra span { font-size: 0.85rem; font-weight: 600; }
-.cifra small { font-size: 0.75rem; color: var(--text-muted); }
+/* Grupo: resumen de la semana en lista */
+.resumen-lista { list-style: none; margin-bottom: 8px; }
+.resumen-fila { display: flex; align-items: center; gap: 12px; padding: 11px 0; border-top: 1px solid var(--border); }
+.resumen-fila:first-child { border-top: none; padding-top: 2px; }
+.resumen-fila svg { flex-shrink: 0; color: var(--text-muted); }
+.resumen-fila span { flex: 1; min-width: 0; color: var(--text-muted); }
+.resumen-fila strong { font-size: 1.2rem; font-variant-numeric: tabular-nums; color: var(--text-main); }
+.aviso-cobertura { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 0.9rem; background: var(--calido-light); color: var(--calido-texto); }
+.aviso-cobertura.completo { background: var(--success-light); color: var(--success-texto); }
 .pidieron { background: var(--calido-light); color: var(--calido-texto); border-radius: 10px; padding: 10px 12px; margin-top: 10px; font-size: 0.9rem; }
 h3 { font-size: 1rem; margin: 18px 0 8px; }
 .miembros { list-style: none; }
@@ -544,13 +548,6 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .plegable-cuerpo { padding: 0 18px 16px; }
 .plegable-cuerpo .esqueleto { height: 120px; }
 
-.carga { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; height: 112px; margin-bottom: 14px; }
-.carga-dia { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 4px; min-width: 0; }
-.carga-num { font-size: 0.8rem; font-weight: 700; color: var(--primary); min-height: 1em; font-variant-numeric: tabular-nums; }
-.carga-barra { width: 100%; max-width: 28px; min-height: 3px; border-radius: 6px 6px 2px 2px; background: var(--primary-light); }
-.carga-nombre { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; }
-.carga-dia.hoy .carga-barra { background: var(--primary); }
-.carga-dia.hoy .carga-nombre { color: var(--text-main); }
 
 .nota-calida { background: var(--calido-light); color: var(--calido-texto); border-radius: 10px; padding: 12px; margin-bottom: 10px; font-size: 0.9rem; }
 .etiqueta-rol {

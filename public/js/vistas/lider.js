@@ -1,44 +1,41 @@
 // Grupo (rol líder): resumen de la semana, invitación, solicitudes y miembros en secciones plegables.
 import { api, memoria } from '../api.js';
 import { pintar, esc, conCarga, avisar, avisarConAccion, confirmar, mostrarEnlace, ubicarMenu } from '../ui.js';
-import { hoyChile } from '../fechas.js';
 
-const DIAS_CORTOS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 const ICONO_MAS = '<svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="5" cy="12" r="2" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/><circle cx="19" cy="12" r="2" fill="currentColor"/></svg>';
 const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`;
 const nombreCompleto = (m) => [m.nombre, m.apellido].filter(Boolean).join(' ');
 
-function cifra(valor, texto) {
-  return `<div class="cifra"><strong>${valor}</strong><span>${esc(texto)}</span></div>`;
+// Íconos de línea para las filas del resumen (mismo trazo que los de la barra inferior).
+const ICONOS_RESUMEN = {
+  evaluaciones: '<path d="M7 3v3M17 3v3M4 9h16M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1z"/>',
+  jovenes: '<circle cx="9" cy="8" r="3.2"/><path d="M3 19c.6-3.2 3-5 6-5s5.4 1.8 6 5"/><path d="M16 4.6a3.2 3.2 0 0 1 0 6.4M18 14.4c1.6.7 2.7 2.3 3 4.6"/>',
+  oraciones: '<path d="M12 20.5s-7.5-4.6-7.5-10.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7.5 2.6c0 5.7-7.5 10.3-7.5 10.3z"/>',
+  avisos: '<path d="M6 17h12l-1.5-2V11a4.5 4.5 0 0 0-9 0v4L6 17zM10 20a2 2 0 0 0 4 0"/>'
+};
+
+function fila(icono, texto, valor) {
+  return `
+    <li class="resumen-fila">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${ICONOS_RESUMEN[icono]}</svg>
+      <span>${esc(texto)}</span>
+      <strong>${valor}</strong>
+    </li>`;
 }
 
 function resumenHtml(r) {
-  const hoy = hoyChile();
-  const maximo = Math.max(1, ...r.porDia.map((d) => d.cantidad));
-  const barras = `
-    <div class="carga" role="img" aria-label="Pruebas por día: ${r.porDia.map((d, i) => `${DIAS_CORTOS[i]} ${d.cantidad}`).join(', ')}">
-      ${r.porDia.map((d, i) => `
-        <div class="carga-dia ${d.fecha === hoy ? 'hoy' : ''}">
-          <span class="carga-num">${d.cantidad || ''}</span>
-          <span class="carga-barra" style="height:${Math.round((d.cantidad / maximo) * 100)}%"></span>
-          <span class="carga-nombre">${DIAS_CORTOS[i]}</span>
-        </div>`).join('')}
-    </div>`;
-
   if (!r.evaluaciones) {
     return `
-      ${barras}
       <p class="nota-calida">Esta semana todavía no hay pruebas anotadas. Comparte el QR o el enlace de la app para que los jóvenes anoten las suyas.</p>
       ${notaNotificaciones(r)}`;
   }
   return `
-    ${barras}
-    <div class="cifras">
-      ${cifra(r.evaluaciones, r.evaluaciones === 1 ? 'evaluación esta semana' : 'evaluaciones esta semana')}
-      ${cifra(r.jovenes, r.jovenes === 1 ? 'joven con pruebas' : 'jóvenes con pruebas')}
-      ${cifra(r.oraciones, r.oraciones === 1 ? 'vez que alguien oró' : 'veces que alguien oró')}
-      ${cifra(r.avisosPush, r.avisosPush === 1 ? 'notificación enviada' : 'notificaciones enviadas')}
-    </div>
+    <ul class="resumen-lista">
+      ${fila('evaluaciones', 'Evaluaciones', r.evaluaciones)}
+      ${fila('jovenes', r.jovenes === 1 ? 'Joven con pruebas' : 'Jóvenes con pruebas', r.jovenes)}
+      ${fila('oraciones', 'Veces que alguien oró', r.oraciones)}
+      ${fila('avisos', 'Avisos enviados', r.avisosPush)}
+    </ul>
     ${r.oraciones ? '' : '<p class="chico">Todavía nadie ha marcado «Ya oré» esta semana.</p>'}
     ${r.pidieronOracion.length ? `<div class="pidieron"><strong>Pidieron oración en los últimos 7 días:</strong> ${r.pidieronOracion.map(esc).join(', ')}</div>` : ''}
     ${notaNotificaciones(r)}`;
@@ -47,9 +44,9 @@ function resumenHtml(r) {
 function notaNotificaciones(r) {
   if (!r.orantes) return '';
   if (r.orantesConPush === r.orantes) {
-    return `<p class="chico">Todas las personas que oran (${r.orantes}) tienen las notificaciones activadas.</p>`;
+    return `<p class="aviso-cobertura completo">Todas las personas que oran (${r.orantes}) tienen los avisos activados.</p>`;
   }
-  return `<p class="chico">${r.orantesConPush} de ${plural(r.orantes, 'persona que ora tiene', 'personas que oran tienen')} las notificaciones activadas. A las demás no les llegan avisos: recuérdales activarlas en Ajustes.</p>`;
+  return `<p class="aviso-cobertura">${r.orantesConPush} de ${plural(r.orantes, 'persona que ora tiene', 'personas que oran tienen')} los avisos activados. A las demás no les llegan: recuérdales activarlos en Ajustes.</p>`;
 }
 
 function menuMas(opciones) {

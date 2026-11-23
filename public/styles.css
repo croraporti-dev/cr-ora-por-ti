@@ -423,6 +423,11 @@ h3 { font-size: 1rem; margin: 18px 0 8px; }
 .dialogo::backdrop { background: rgb(15 23 42 / 0.45); }
 .dialogo h2 { margin: 0 0 8px; font-size: 1.1rem; }
 .dialogo p { color: var(--text-muted); margin-bottom: 20px; }
+.popup-icono { width: 44px; height: 44px; border-radius: 50%; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; margin-bottom: 12px; }
+.popup-icono.alerta { background: var(--calido-light); color: var(--calido-texto); }
+.popup-botones { display: grid; gap: 6px; }
+.popup-pasos { margin: 0 0 18px 20px; color: var(--text-main); }
+.popup-pasos li { margin-bottom: 8px; }
 .dialogo-botones { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .dialogo-botones .btn { min-height: 48px; }
 .btn.peligro-solido { background: var(--danger); color: var(--on-danger); }

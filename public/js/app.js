@@ -6,6 +6,7 @@ import { vistaAgenda } from './vistas/agenda.js';
 import { vistaLider } from './vistas/lider.js';
 import { vistaAjustes } from './vistas/ajustes.js';
 import * as push from './push.js';
+import { mostrarPopupAvisos } from './popup-avisos.js';
 import { vistaPendiente } from './vistas/pendiente.js';
 
 const estado = { user: null, avisos: null };
@@ -140,6 +141,7 @@ async function render() {
   pintarMenu(ruta);
   await privada.vista(ctx);
   document.getElementById('vista').focus({ preventScroll: true });
+  if (ruta === '/agenda') mostrarPopupAvisos({ user: estado.user, params });
 }
 
 // Al cambiar de pantalla, el contenido aparece con un fundido suave (si el navegador lo soporta

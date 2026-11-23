@@ -1,5 +1,5 @@
 // Service worker de CR Juntos en la prueba: recibe los avisos push y deja la app abriendo sin conexión.
-const VERSION = 'cr-juntos-v18';
+const VERSION = 'cr-juntos-v19';
 const ARCHIVOS = [
   '/',
   '/index.html',
@@ -12,6 +12,7 @@ const ARCHIVOS = [
   '/js/textos.js',
   '/js/push.js',
   '/js/tema.js',
+  '/js/popup-avisos.js',
   '/js/vistas/login.js',
   '/js/vistas/joven.js',
   '/js/vistas/agenda.js',

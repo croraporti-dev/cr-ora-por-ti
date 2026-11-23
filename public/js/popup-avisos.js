@@ -1,10 +1,10 @@
 // Popup que invita a instalar la app o a activar los avisos (solo orantes y líderes, en Android o iPhone).
-// Cada mensaje sale UNA sola vez por dispositivo. Mientras AUTOMATICO sea false, solo aparece al abrir
+// Cada mensaje sale UNA sola vez por dispositivo. Con AUTOMATICO en false solo aparece al abrir
 // la Agenda con ?popup=avisos | bloqueados | instalar | iphone (modo de prueba: no se recuerda que se vio).
 import { esc, avisar } from './ui.js';
 import * as push from './push.js';
 
-const AUTOMATICO = false;
+const AUTOMATICO = true;
 const CLAVE_INSTALAR = 'cr_popup_instalar';
 const CLAVE_AVISOS = 'cr_popup_avisos';
 
